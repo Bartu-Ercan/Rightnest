@@ -7,7 +7,7 @@
 - Prior intermediate fit runs failed from certain starting origins. The last recorded source separates shrink, move and final size, waiting for observed geometry. No new foreground run was performed while the user was studying.
 - Existing local-certificate permission survived product rename in the prior session.
 
-## Pending release gates
+## Historical Preview 1 release gates
 
 - Actual pointer/composite visuals, drag/resize, menus/sheets, focus races and display/Spaces transitions.
 - Two additional daily-use apps. Current background/foreground audits reject Finder, Safari, Chrome and Preview; see compatibility.md.
@@ -17,7 +17,7 @@
 
 The app remains a developer preview. Historical full-screen prototype tests are archived in prototype-investigation.md and do not validate the new fit behavior.
 
-## Current background checks
+## Historical Preview 1 background checks
 
 - Arm64 release compilation passed. Packaging initially failed because of incorrect lipo argument order; fixed in both local and CI scripts.
 - Packaging's debug-entrypoint scan caught command-line flag strings retained by an unconditional onboarding guard. Guard now compiles these references only under DEBUG; packaging is rerun after the fix.
@@ -56,3 +56,7 @@ Preview 2 source CI 41463347790 passed (11 XCTest cases, 41 standalone checks an
 49 standalone checks and 24 offscreen AppKit button/appearance/width combinations passed. Native checks cover resolved fill/symbol contrast >=3:1, labels, minimum hit size, containment, disabled and exit states across light/dark/high-contrast themes. These are component checks, not real pointer/composite verification.
 
 Preview, previously outside the runtime allowlist, was automatically evaluated. Its crowded ordinary strip was rejected; the shared compact strip passed the complete disposable-PDF action sequence (verification-preview.json). TextEdit regression passed after hidden-window backoff. Command-Comma settings opening, dynamic application listing and Preview exclusion toggle/restore were observed through Computer Use. Blender is not installed and was not tested. Other unverified app names must not be promoted to verified merely because automatic eligibility is enabled.
+
+## Preview 3 publication
+
+Source 278fd56 passed CI https://github.com/Bartu-Ercan/Rightnest/actions/runs/41472088196: 12 XCTest cases, 49 standalone checks, 24 native hover/layout combinations and arm64 release validation. Build 4 DMG passed checksum, read-only mount, strict signature, arm64 architecture and Applications symlink checks. Preview 3 is published at https://github.com/Bartu-Ercan/Rightnest/releases/tag/v0.1.0-preview.3. The published DMG and checksum were re-downloaded using gh into .build/download-preview-3; shasum -a 256 -c passed. This is not a browser-quarantine test. Installed release updated at ~/Applications/Rightnest.app and launched in the background. Self-signing is unchanged; no new permission was silently granted. Clean-account browser download, Gatekeeper acceptance and distributed-update permission continuity remain unverified.
