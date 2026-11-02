@@ -1,0 +1,82 @@
+[
+  {
+    "actions": "none",
+    "application": "com.apple.finder",
+    "foreground": "false",
+    "frame": "unavailable",
+    "os": "Version 27.0 (Build 26A428)",
+    "placement": "Title bar intersects AXSplitGroup",
+    "time": "2026-11-02T08:35:34Z",
+    "version": "27.0"
+  },
+  {
+    "actions": "none",
+    "application": "com.apple.Safari",
+    "foreground": "true",
+    "frame": "unavailable",
+    "os": "Version 27.0 (Build 26A428)",
+    "placement": "Unsupported window state",
+    "time": "2026-11-02T08:35:34Z",
+    "version": "27.0"
+  },
+  {
+    "actions": "none",
+    "application": "com.apple.TextEdit",
+    "foreground": "false",
+    "frame": "unavailable",
+    "os": "Version 27.0 (Build 26A428)",
+    "placement": "Another surface covers the title bar",
+    "time": "2026-11-02T08:37:32Z",
+    "version": "1.21"
+  },
+  {
+    "actions": "none",
+    "application": "com.apple.Preview",
+    "foreground": "false",
+    "frame": "unavailable",
+    "os": "Version 27.0 (Build 26A428)",
+    "placement": "Title bar intersects AXSplitGroup",
+    "time": "2026-11-02T08:35:35Z",
+    "version": "11.0"
+  },
+  {
+    "actions": "none",
+    "application": "com.apple.TextEdit",
+    "foreground": "false",
+    "frame": "unavailable",
+    "os": "Version 27.0 (Build 26A428)",
+    "placement": "Unsupported window state",
+    "time": "2026-11-02T08:36:23Z",
+    "version": "1.21"
+  },
+  {
+    "actions": "none",
+    "application": "com.apple.TextEdit",
+    "foreground": "false",
+    "frame": "unavailable",
+    "os": "Version 27.0 (Build 26A428)",
+    "placement": "Missing close-button geometry",
+    "time": "2026-11-02T08:37:30Z",
+    "version": "1.21"
+  },
+  {
+    "actions": "none",
+    "application": "com.apple.TextEdit",
+    "foreground": "false",
+    "frame": "unavailable",
+    "os": "Version 27.0 (Build 26A428)",
+    "placement": "Missing geometry for AXWindow",
+    "time": "2026-11-02T08:36:27Z",
+    "version": "1.21"
+  },
+  {
+    "actions": "none",
+    "application": "com.apple.Safari",
+    "foreground": "true",
+    "frame": "unavailable",
+    "os": "Version 27.0 (Build 26A428)",
+    "placement": "Title bar intersects AXSplitGroup",
+    "time": "2026-11-02T08:38:36Z",
+    "version": "27.0"
+  }
+]

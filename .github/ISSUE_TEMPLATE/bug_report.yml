@@ -1,0 +1,30 @@
+name: Bug report
+description: Report a reproducible Rightnest issue
+body:
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Rightnest, macOS, target app version and Mac model (no serial number).
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps, expected and actual behavior
+      description: Include window type, display arrangement and menu-bar status. Remove private document names/content.
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation
+      options:
+        - Local source build
+        - Downloaded preview
+        - Other
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Optional evidence
+      description: Review screenshots and logs for private information before attaching.

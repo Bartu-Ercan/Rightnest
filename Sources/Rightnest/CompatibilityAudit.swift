@@ -1,0 +1,34 @@
+#if DEBUG
+import AppKit
+
+/// Explicit opt-in developer audit. Records geometry/capabilities only, never
+/// titles, document paths, text, URLs or screenshots. It never dispatches actions.
+@MainActor
+enum CompatibilityAudit {
+    static func run(directory: URL) async {
+        let engine = WindowEngine()
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        var rows: [[String: String]] = []
+        var previous: [String: String] = [:]
+        while !Task.isCancelled {
+            for app in NSWorkspace.shared.runningApplications {
+                guard let id = app.bundleIdentifier, AppModel.candidates.contains(where: { $0.0 == id }) else { continue }
+                let result = await engine.inspect(pid: app.processIdentifier, overlayNumber: nil, requireFocus: false)
+                let frame = result.snapshot.map { NSStringFromRect($0.frame) } ?? "unavailable"
+                let key = id + result.reason + frame
+                if previous[id] != key {
+                    previous[id] = key
+                    rows.append(["application": id, "foreground": String(NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier), "version": app.bundleURL.flatMap { Bundle(url: $0)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String } ?? "unknown",
+                        "os": ProcessInfo.processInfo.operatingSystemVersionString,
+                        "time": ISO8601DateFormatter().string(from: Date()), "placement": result.reason,
+                        "frame": frame, "actions": result.snapshot?.actions.map(\.rawValue).sorted().joined(separator: ",") ?? "none"])
+                    if let data = try? JSONSerialization.data(withJSONObject: rows, options: [.prettyPrinted, .sortedKeys]) {
+                        try? data.write(to: directory.appendingPathComponent("compatibility.json"), options: .atomic)
+                    }
+                }
+            }
+            try? await Task.sleep(for: .seconds(1))
+        }
+    }
+}
+#endif

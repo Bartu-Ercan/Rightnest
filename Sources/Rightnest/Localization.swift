@@ -1,0 +1,47 @@
+import Foundation
+
+func L(_ english: String) -> String {
+    let turkish = Locale.preferredLanguages.first?.hasPrefix("tr") == true
+    return turkish ? translations[english] ?? english : english
+}
+private let translations: [String: String] = [
+    "Minimize window": "Pencereyi küçült", "Fit or restore window": "Ekrana sığdır veya geri yükle",
+    "Close window": "Pencereyi kapat", "Restore window": "Pencereyi geri yükle", "Fit window to screen": "Pencereyi ekrana sığdır",
+    "Paused": "Duraklatıldı", "Hidden": "Gizli", "Controls active": "Kontroller etkin",
+    "Window control permission needed": "Pencere kontrol izni gerekiyor", "External controls are off": "Diğer uygulamaların kontrolleri kapalı",
+    "Controls hidden for this application": "Bu uygulamada kontroller gizli", "Checking target window…": "Hedef pencere kontrol ediliyor…",
+    "Window action sent": "Pencere işlemi gönderildi", "Window action cancelled: target changed": "İşlem iptal edildi: hedef değişti",
+    "Window action unavailable": "Pencere işlemi kullanılamıyor", "Unsupported window state": "Desteklenmeyen pencere durumu",
+    "Another window covers the title bar": "Başlık çubuğunu başka bir pencere kapatıyor",
+    "Another surface covers the title bar": "Başlık çubuğu başka bir yüzeyle örtülü",
+    "Application limited the window size": "Uygulama pencere boyutunu sınırladı",
+    "Allow Rightnest in Login Items in System Settings.": "Sistem Ayarları’nda Oturum Açma Öğeleri bölümünden Rightnest’a izin verin.",
+    "Could not change Login Items. Check System Settings.": "Oturum açma ayarı değiştirilemedi. Sistem Ayarları’nı kontrol edin.",
+    "No public release is available yet": "Henüz herkese açık bir sürüm yok",
+    "Enable Rightnest": "Rightnest’u etkinleştir", "Applications": "Uygulamalar", "Open Test Window": "Deneme penceresini aç",
+    "Settings…": "Ayarlar…", "Releases on GitHub": "GitHub sürümleri", "Quit Rightnest": "Rightnest’dan çık",
+    "Window controls. On your right.": "Pencere kontrolleri. Sağınızda.", "PREVIEW": "ÖNİZLEME",
+    "Try it first, without permission": "Önce izin vermeden deneyin",
+    "A safe test window lets you try the three right-side controls before allowing access to other apps.": "Diğer uygulamalara erişim vermeden önce üç sağ kontrolü güvenli bir deneme penceresinde deneyin.",
+    "Enable external controls (TextEdit preview)": "Diğer uygulamalarda etkinleştir (TextEdit önizlemesi)",
+    "Launch at login": "Oturum açıldığında başlat", "Continue in menu bar": "Menü çubuğunda devam et", "Enabled": "Etkin",
+    "Other applications are being evaluated. Unsupported layouts remain hidden.": "Diğer uygulamalar değerlendiriliyor. Desteklenmeyen yerleşimlerde kontroller gizlenir.",
+    "A familiar corner.": "Tanıdık bir köşe.", "Minimize": "Küçült", "Fit / restore": "Sığdır / geri yükle", "Close": "Kapat",
+    "Your window controls are also on the right.\nTry minimizing, fitting to screen, restoring, then closing this window.": "Pencere kontrolleriniz sağda da var.\nBu pencereyi küçültmeyi, sığdırmayı, geri yüklemeyi ve kapatmayı deneyin.",
+    "Test window only · No other app is changed": "Yalnız deneme penceresi · Diğer uygulamalar değiştirilmez",
+    "Allow window control": "Pencere kontrolüne izin verin", "Waiting for permission": "İzin bekleniyor",
+    "Window control is allowed": "Pencere kontrolüne izin verildi", "Window control needs permission again": "Pencere kontrolü yeniden izin istiyor", "READY": "HAZIR",
+    "Permission detected. Try a TextEdit document next. The original left-side controls stay in place.": "İzin algılandı. Şimdi bir TextEdit belgesinde deneyin. Soldaki özgün kontroller yerinde kalır.",
+    "Try in TextEdit": "TextEdit’te dene",
+    "Preview support: TextEdit only. If the title bar is occupied or uncertain, controls stay hidden.": "Önizleme desteği yalnız TextEdit içindir. Başlık çubuğu doluysa veya belirsizse kontroller gizlenir.",
+    "Rightnest needs macOS permission to close, minimize and resize another app’s window. macOS grants broad control; Rightnest uses it for window controls and does not send window data to a server.": "Rightnest, başka uygulamaların pencerelerini kapatmak, küçültmek ve boyutlandırmak için macOS izni ister. Bu izin geniş erişim sağlar; Rightnest bunu pencere kontrollerinde kullanır, pencere verilerini bir sunucuya göndermez.",
+    "1. In System Settings, find Rightnest.": "1. Sistem Ayarları’nda Rightnest’u bulun.",
+    "2. Turn on the switch beside it.": "2. Yanındaki anahtarı açın.", "3. Return here. Rightnest checks automatically.": "3. Buraya dönün. Rightnest otomatik kontrol eder.",
+    "Open Permission Settings": "İzin ayarlarını aç", "Set Up Window Control…": "Pencere kontrolünü ayarla…", "Check Again": "Yeniden kontrol et",
+    "Already enabled, or Rightnest isn’t listed?": "Zaten açık mı, yoksa Rightnest listede yok mu?",
+    "If it isn’t listed, press + in the permission settings and choose this copy of Rightnest. “Show Rightnest in Finder” locates it for you.": "Listede yoksa izin ayarlarında + düğmesine basın ve bu Rightnest kopyasını seçin. “Finder’da Rightnest’u göster” doğru kopyayı bulur.",
+    "If the switch is already on but permission is still missing, quit and reopen Rightnest. After a development update, remove its old entry with − and add this copy again with +.": "Anahtar açık ama izin eksikse Rightnest’dan çıkıp yeniden açın. Geliştirme güncellemesinden sonra eski kaydı − ile kaldırıp bu kopyayı + ile yeniden ekleyin.",
+    "You can also try the test window below without granting permission.": "İzin vermeden aşağıdaki deneme penceresini de kullanabilirsiniz.",
+    "Show Rightnest in Finder": "Finder’da Rightnest’u göster"
+
+]

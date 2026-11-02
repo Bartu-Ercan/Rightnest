@@ -1,0 +1,92 @@
+[
+  {
+    "actions" : "none",
+    "application" : "com.apple.TextEdit",
+    "frame" : "unavailable",
+    "os" : "Version 27.0 (Build 26A428)",
+    "placement" : "Window control permission or focus changed",
+    "time" : "2026-11-02T08:27:13Z",
+    "version" : "1.21"
+  },
+  {
+    "actions" : "none",
+    "application" : "com.apple.finder",
+    "frame" : "unavailable",
+    "os" : "Version 27.0 (Build 26A428)",
+    "placement" : "Title bar intersects AXSplitGroup",
+    "time" : "2026-11-02T08:27:21Z",
+    "version" : "27.0"
+  },
+  {
+    "actions" : "none",
+    "application" : "com.apple.finder",
+    "frame" : "unavailable",
+    "os" : "Version 27.0 (Build 26A428)",
+    "placement" : "Window control permission or focus changed",
+    "time" : "2026-11-02T08:27:25Z",
+    "version" : "27.0"
+  },
+  {
+    "actions" : "none",
+    "application" : "com.apple.finder",
+    "frame" : "unavailable",
+    "os" : "Version 27.0 (Build 26A428)",
+    "placement" : "Unsupported window state",
+    "time" : "2026-11-02T08:27:26Z",
+    "version" : "27.0"
+  },
+  {
+    "actions" : "none",
+    "application" : "com.apple.finder",
+    "frame" : "unavailable",
+    "os" : "Version 27.0 (Build 26A428)",
+    "placement" : "Title bar intersects AXSplitGroup",
+    "time" : "2026-11-02T08:27:32Z",
+    "version" : "27.0"
+  },
+  {
+    "actions" : "none",
+    "application" : "com.apple.Safari",
+    "frame" : "unavailable",
+    "os" : "Version 27.0 (Build 26A428)",
+    "placement" : "Title bar intersects AXSplitGroup",
+    "time" : "2026-11-02T08:28:50Z",
+    "version" : "27.0"
+  },
+  {
+    "actions" : "none",
+    "application" : "com.google.Chrome",
+    "frame" : "unavailable",
+    "os" : "Version 27.0 (Build 26A428)",
+    "placement" : "Window control permission or focus changed",
+    "time" : "2026-11-02T08:28:59Z",
+    "version" : "156.0.8078.79"
+  },
+  {
+    "actions" : "none",
+    "application" : "com.google.Chrome",
+    "frame" : "unavailable",
+    "os" : "Version 27.0 (Build 26A428)",
+    "placement" : "Unknown empty title bar group",
+    "time" : "2026-11-02T08:29:02Z",
+    "version" : "156.0.8078.79"
+  },
+  {
+    "actions" : "none",
+    "application" : "com.google.Chrome",
+    "frame" : "unavailable",
+    "os" : "Version 27.0 (Build 26A428)",
+    "placement" : "Window control permission or focus changed",
+    "time" : "2026-11-02T08:29:08Z",
+    "version" : "156.0.8078.79"
+  },
+  {
+    "actions" : "none",
+    "application" : "com.google.Chrome",
+    "frame" : "unavailable",
+    "os" : "Version 27.0 (Build 26A428)",
+    "placement" : "Unknown empty title bar group",
+    "time" : "2026-11-02T08:29:10Z",
+    "version" : "156.0.8078.79"
+  }
+]
