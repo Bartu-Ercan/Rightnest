@@ -4,6 +4,7 @@ Product: Rightnest, formerly Starboard. Root: ~/Desktop/vibecoding/Rightnest.
 User choices: extra right-side controls, originals retained, hide on uncertainty; minimize / fit-restore / close; Apple Silicon; MIT; no paid Developer ID membership; logo A Corner selected. User is studying: do not open or focus test windows on their desktop.
 
 ## Current evidence
+- Preview 2 published: https://github.com/Bartu-Ercan/Rightnest/releases/tag/v0.1.0-preview.2. TextEdit/Safari/Finder enabled when space is verified. Source CI 41463347790 passed: 11 XCTest cases and 41 standalone checks. Full plan audit: docs/plan-audit.md.
 - `swift run PlacementChecks`: 41 checks pass.
 - Current recorded successful integration: docs/verification-textedit.json. Fit/restore/minimize/close passed, with Window action sent. Later runs interrupted by focus changes are not passes. Own demo fit/restore/close passed coordinate-pointer tests; external composite pointer tests remain pending.
 - Arm64 release, debug-entrypoint exclusion, DMG checksum, read-only mount, packaged signature/icon/Applications link all passed. Release build/DMG details are recorded in validation.md. Never infer clean-machine install or remote CI success from local build.

@@ -19,3 +19,5 @@ Quit the old copy, download the DMG, drag Rightnest to Applications, eject the i
 ## Verification limits
 
 41 standalone checks pass locally; source CI is linked in Actions. Developer tests invoke real proxy NSButtons with performClick, not physical external-panel pointer input. Own demo pointer tests exist, but external composite visuals, dialogs/menus/tab variations, multiple displays/Spaces, clean-account/browser-download installation, older OS versions and one-hour soak remain incomplete. No broad beta or stable-release claim is made. See docs/plan-audit.md for the full original-plan audit.
+
+Current source CI passed: https://github.com/Bartu-Ercan/Rightnest/actions/runs/41463347790. The downloadable arm64 bundle is build 3; its staged signature, architecture and disk-image checksum were verified locally. The separate-user/downloaded installation and long-duration limitations above still apply.
