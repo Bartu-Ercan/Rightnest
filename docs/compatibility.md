@@ -6,7 +6,7 @@ API baseline: macOS 13. Actual host observations below: Apple Silicon, macOS 27.
 |---|---|---|---|
 | TextEdit | 1.21 | Limited; enabled | Disposable document action integration; physical pointer/composite and edge cases still pending. |
 | Finder | 27.0 | Limited; enabled in Preview 2 | Unique disposable folder window at 1760 pt passed all actions. 1469 pt crowded long-title layout hid controls. Native character bounds separate title ink from blank label space. |
-| Safari | 27.0 | Limited; enabled in Preview 2 | Disposable local HTML window passed minimize, restore, fit, restore-frame and close. Narrow 880 pt window correctly hid controls. |
+| Safari | 27.0 | Limited; enabled in Preview 2 | Single-window local HTML fixture with title changes passed 300 visibility samples over 30s, then minimize, restore, fit, restore-frame and close. Narrow 880 pt window previously hid controls. |
 | Chrome | 156.0.8078.79 | Limited; guest fixture verified | Native trailing tab-strip filler is structurally recognized. A single-tab local fixture with repeated title changes passed all actions and 30 visibility samples over 3 seconds (verification-chrome.json). Crowded tab strips and profile-specific toolbar cases still need broader testing. |
 | WhatsApp | 26.38.74 | Limited; foreground visibility verified, actions unverified | Measured native navigation spacer, aligned to its own row; disjoint sibling-button hit-test bug corrected within that exact scope. A 1072×600 window had 42 consecutive visible samples over 51s after startup. No action was dispatched to the personal chat window. See verification-whatsapp.json. |
 | Preview | 11.0 | Automatic; basic actions verified | Disposable PDF passed minimize, return, fit, restore-frame and close with a 66 pt compact strip in a 1760 pt window. 102 pt strip correctly did not fit. |
@@ -17,7 +17,7 @@ Earlier layout rejections were conservative implementation results, not proof th
 
 ## Automatic eligibility is not universal compatibility
 
-There is no app-name allowlist in Preview 3. Identified regular apps are checked as they become active; user exclusions win. The table records test evidence, not permission to inspect an app. Blender is not installed on the test Mac and remains unverified. A custom-drawn or AX-incomplete titlebar can still be rejected. No image recognition, injection or blind forced positioning is used. Running apps appear in Settings; excluded apps remain listed even after closing.
+There is no app-name eligibility allowlist. Preview 4 adds narrow native toolbar geometry adapters. Identified regular apps are checked as they become active; user exclusions win. The table records test evidence, not permission to inspect an app. Blender is not installed on the test Mac and remains unverified. A custom-drawn or AX-incomplete titlebar can still be rejected. No image recognition, injection or blind forced positioning is used. Running apps appear in Settings; excluded apps remain listed even after closing.
 
 ## Release gate
 

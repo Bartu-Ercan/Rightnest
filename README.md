@@ -2,7 +2,7 @@
 
 Native macOS menu-bar utility that adds **minimize, fit/restore, and close** controls to the right of supported windows. Original left-side controls remain in place. Occupied or uncertain layouts are rejected.
 
-**Developer preview, not a universal window-control replacement.** Preview 3 evaluates all identified normal applications automatically, without an app-name allowlist. It prefers the rightmost verified anchor, trying a 102 pt strip then 66 pt compact controls before moving left. TextEdit, Safari, Finder and Preview have passed disposable-window action tests. Other apps, including Blender, are eligible but not thereby verified. Crowded or incomplete titlebars use a small shelf outside the window only when that desktop space is clear; otherwise controls stay hidden. Screen-filling windows may have no outside space. Normal action flows have passed in Safari and Finder; broad beta still requires pointer/composite, edge-case and installation validation. See [compatibility](docs/compatibility.md) and [validation](docs/validation.md).
+**Developer preview, not a universal window-control replacement.** Preview 4 evaluates all identified normal applications automatically, without an app-name allowlist. It prefers the rightmost verified anchor, trying a 102 pt strip then 66 pt compact controls before moving left. TextEdit, Safari, Finder, Preview and Chrome have passed disposable-window action tests. WhatsApp’s measured native navigation spacer has passed a read-only foreground visibility check; its three actions are not yet app-verified. Other apps, including Blender, are eligible but not thereby verified. Crowded or incomplete titlebars use a small shelf outside the window only when that desktop space is clear; otherwise controls stay hidden. Screen-filling windows may have no outside space. Safari passed 300 visibility samples over 30 seconds under repeated title changes; broad beta still requires pointer/composite, edge-case and installation validation. See [compatibility](docs/compatibility.md) and [validation](docs/validation.md).
 
 ## Use
 
@@ -60,6 +60,8 @@ open -n "$HOME/Applications/Rightnest.app" --args --verify-textedit "$PWD/.build
 ```
 
 The JSON report is written under that directory. It exercises real proxy NSButtons with `performClick`; this does not prove physical mouse hit testing or composite appearance. `--audit-compatibility <directory>` is a separate debug-only, read-only geometry audit of running normal apps. It records no titles, document paths or content. `--verify-app <report-directory> <bundle-id> <fixture-path>` reuses the fixture verifier for an explicitly prepared disposable window in another app. All developer entrypoints are excluded from release binaries.
+
+For a browser stress check, load [Checks/Fixtures/window-stability.html](Checks/Fixtures/window-stability.html) in a new single-tab Safari window or Chrome Guest window, then invoke the matching debug verifier with that fixture path. It observes visibility for 30 seconds before actions; keep that window in front. Multi-tab browser windows are rejected. A separate macOS Space does not isolate a shared app session; use an actually isolated test account/environment for uninterrupted verification.
 
 ## Contribute
 

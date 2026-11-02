@@ -2,7 +2,7 @@
 
 ## Before installing
 
-Current status: developer preview, Apple Silicon only. Preview 3 automatically evaluates identified normal apps. TextEdit, Safari, Finder and Preview basic action fixtures passed; eligibility is not a claim that all apps work. Controls can use a compact strip, but crowded or incomplete layouts remain hidden. Disable any app in Settings → Applications. Download only a release whose source and limitations you have reviewed. Limited preview downloads, when available, are listed at https://github.com/Bartu-Ercan/Rightnest/releases.
+Current status: developer preview, Apple Silicon only. Preview 4 automatically evaluates identified normal apps. TextEdit, Safari, Finder, Preview and Chrome basic action fixtures passed; WhatsApp native-header visibility is verified but its actions are not app-tested. Eligibility is not a claim that all apps work. Controls can use a compact strip, but crowded or incomplete titlebars use an outside shelf only when vacant desktop space is verified; otherwise controls remain hidden. Disable any app in Settings → Applications. Download only a release whose source and limitations you have reviewed. Limited preview downloads, when available, are listed at https://github.com/Bartu-Ercan/Rightnest/releases.
 
 The app is **not Developer ID signed or notarized**. A local signature verifies package integrity but is not Apple's verification of the publisher. macOS can display an unidentified-developer warning or block a downloaded copy. Managed Macs may disallow it altogether. Do not disable Gatekeeper or remove quarantine through Terminal. If macOS offers an explicit per-app **Open Anyway** choice under Privacy & Security, use it only after checking the source and accepting that limitation. If it is unavailable, stop; source builds are intended for developers, not a mandatory end-user workaround.
 
@@ -19,7 +19,7 @@ No screen-recording, microphone, camera, full-disk or administrator access is re
 
 ## If controls are hidden
 
-Check menu-bar status. The app intentionally hides controls for unsupported apps, uncertain or occupied titlebars, dialogs, full-screen windows and permission loss. Making a supported window wider can help only if its right titlebar actually has clear space. Do not change system protections to make unsupported layouts work.
+Check menu-bar status. The app hides controls for unsupported states, dialogs, full-screen windows and permission loss. An uncertain/occupied titlebar can use an outside shelf only if that desktop space is clear; screen-filling windows may leave no outside space. Making a supported window wider can help only if its right titlebar actually has clear space. Do not change system protections to make unsupported layouts work.
 
 If permission is on but the app reports it missing, quit and reopen the installed copy. Check that there is no old duplicate. The app's Finder button reveals its exact location. Replacing an old permission entry may be necessary after a signing-identity change. Routine updates signed by the same local identity preserved permission in development; downloaded-distribution update continuity still needs independent testing.
 

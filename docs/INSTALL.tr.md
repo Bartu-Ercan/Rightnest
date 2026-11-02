@@ -1,6 +1,6 @@
 # Rightnest kurulumu
 
-Bu sürüm geliştirici önizlemesidir. Yalnız Apple Silicon hedeflenir; Preview 3 normal uygulamaları adına bakmadan otomatik değerlendirir. TextEdit, Safari, Finder ve Preview temel işlem testlerini geçti; diğer uygulamalar doğrulanmış sayılmaz. Yeterli başlık çubuğu boşluğu veya erişilebilirlik bilgisi yoksa kontroller gizlenir. Gerekirse 66 puanlık kompakt düzene geçilir. Uygulama bazında kapatmayı Ayarlar → Uygulamalar bölümünden yapabilirsiniz. Sınırlı önizleme paketleri GitHub Releases sayfasında listelenir: https://github.com/Bartu-Ercan/Rightnest/releases.
+Bu sürüm geliştirici önizlemesidir. Yalnız Apple Silicon hedeflenir; Preview 4 normal uygulamaları adına bakmadan otomatik değerlendirir. TextEdit, Safari, Finder, Preview ve Chrome temel işlem testlerini geçti. WhatsApp’ta yalnız görünürlük doğrulandı; üç pencere işlemi uygulamaya özel test edilmedi. Diğer uygulamalar doğrulanmış sayılmaz. Başlık çubuğu doğrulanamazsa pencerenin dışındaki boş alan değerlendirilir. Orası da doluysa kontroller gizlenir. Gerekirse 66 puanlık kompakt düzene geçilir. Uygulama bazında kapatmayı Ayarlar → Uygulamalar bölümünden yapabilirsiniz. Sınırlı önizleme paketleri GitHub Releases sayfasında listelenir: https://github.com/Bartu-Ercan/Rightnest/releases.
 
 ## Kurulum
 
@@ -14,7 +14,7 @@ Apple Developer ID imzası ve notarizasyon yoktur. macOS indirilen uygulamayı e
 
 ## Kullanım
 
-Sıra: küçült, ekrana sığdır/geri yükle, kapat. Soldaki özgün düğmeler kalır. Dolu veya doğrulanamayan alanda sağ kontroller gizlenir. Tam ekran pencerelerde gösterilmez. Ortadaki düğme Dock ve menü çubuğunu korur. Elle yeniden boyutlandırma eski geri yükleme kaydını geçersiz kılar.
+Sıra: küçült, ekrana sığdır/geri yükle, kapat. Soldaki özgün düğmeler kalır. Başlık alanı dolu veya belirsizse pencerenin hemen dışında doğrulanmış boş alan aranır. Dışarıda da yer yoksa kontroller gizlenir. Tam ekran pencerelerde gösterilmez. Ortadaki düğme Dock ve menü çubuğunu korur. Elle yeniden boyutlandırma eski geri yükleme kaydını geçersiz kılar.
 
 Oturum açıldığında başlatma isteğe bağlıdır ve başlangıçta kapalıdır. Menüden duraklatabilir, ayarları açabilir veya çıkabilirsiniz.
 

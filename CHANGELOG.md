@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.0 Preview 4 — native toolbar compatibility
+
+- Recognize native Chromium tab-strip filler and scoped WhatsApp navigation spacers; correct disjoint native hit-test reports without accepting real button overlap.
+- Keep safe anchors, coalesce content queries, filter stale AX observers, retry temporarily missing focus data, and avoid unchanged native-control redraws.
+- Add measured outside-window shelf fallback; no automatic window resizing or content overlap.
+- Refine settings with Overview/Applications navigation, app icons/search, explicit compatibility wording and build number.
+- Safari passed a 30s visibility/action fixture; WhatsApp passed read-only foreground visibility, with actions still unverified. Chrome fixture evidence and remaining release gates are in docs/validation.md.
+- Add scoped hit geometry, detached placement and native-hover checks. No new runtime dependency.
+
 ## 0.1.0 Preview 3 — automatic discovery
 
 - Evaluate all identified regular apps without a name allowlist; retain strict window capability/geometry checks and opt-outs.

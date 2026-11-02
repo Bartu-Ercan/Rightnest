@@ -1,21 +1,24 @@
 {
-  "actionTrace" : "action close\nsnapshot {{80, 89}, {1470, 701}}",
+  "actionTrace" : "action close\nsnapshot {{80, 90}, {1760, 700}}",
   "close" : "passed",
   "document" : "disposable fixture verified by AXDocument or AXWebArea URL",
+  "events" : "recheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\ninspection failed: Window control permission or focus changed\nwindow {{80, 90}, {1760, 700}} close {{98, 108}, {16, 16}} search {{974, 103}, {858, 26}}\nAXTextField {{625, 103}, {644, 41}}\nAXButton {{1265, 97.5}, {34, 38}}\nAXButton {{1287, 97.5}, {33.5, 39}}\nAXButton {{1680, 85}, {46, 62}}\nAXButton {{1716, 85}, {46, 62}}\nAXButton {{1752, 85}, {46, 62}}\nAXButton {{1788, 85}, {53, 62}}\ncollection ms 7\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nhide: AXWindowCreated\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged\nrecheck: AXTitleChanged",
   "expectedFit" : "{{0, 30}, {1920, 992}}",
-  "finalFrame" : "{{319, 81}, {1469, 700}}",
+  "finalFrame" : "{{0, 30}, {1920, 991}}",
   "fit" : "passed",
   "frontApplication" : "com.apple.Safari",
   "lastActionResult" : "Window action sent",
   "lastAppStatus" : "Window action sent",
   "lastPlacementIssue" : "Unverified title bar",
+  "layout" : "window {{80, 90}, {1760, 700}} close {{98, 108}, {16, 16}} search {{974, 103}, {858, 26}}\nAXTextField {{625, 103}, {644, 41}}\nAXButton {{1265, 97.5}, {34, 38}}\nAXButton {{1287, 97.5}, {33.5, 39}}\nAXButton {{1680, 85}, {46, 62}}\nAXButton {{1716, 85}, {46, 62}}\nAXButton {{1752, 85}, {46, 62}}\nAXButton {{1788, 85}, {53, 62}}\ncollection ms 9",
   "minimize" : "passed",
   "minimizeDispatchStatus" : "Checking target window…",
   "minimizePlacementIssue" : "Unverified title bar",
-  "originalFrame" : "{{80, 90}, {1469, 700}}",
+  "originalFrame" : "{{80, 90}, {1760, 700}}",
   "panel" : "visible",
   "permission" : "granted",
   "restore" : "passed",
   "restoreFrame" : "passed",
-  "result" : "passed"
+  "result" : "passed",
+  "stability" : "passed: 300 visible samples over 30 seconds"
 }
