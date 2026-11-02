@@ -1,0 +1,12 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Rightnest Stability Fixture</title>
+<h1>Disposable Rightnest stability fixture</h1>
+<p>Local file. No account, network request or personal content.</p>
+<script>
+let changes = 0;
+const timer = setInterval(() => {
+  document.title = changes++ % 2 ? "Rightnest Stability Fixture" : "Rightnest Native Controls Fixture";
+  if (changes >= 450) clearInterval(timer);
+}, 200);
+</script>

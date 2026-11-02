@@ -15,7 +15,7 @@ enum TextEditVerification {
         }
         throw Failure(message: message)
     }
-    static func matchesFixture(_ window: AXUIElement, fixture: URL, client: AccessibilityClient, finderFixture: Bool = false) -> Bool {
+    static func matchesFixture(_ window: AXUIElement, fixture: URL, client: AccessibilityClient, finderFixture: Bool = false, nativeDocument: Bool = false) -> Bool {
         func matches(_ raw: CFTypeRef?) -> Bool {
             if let url = raw as? URL { return url.isFileURL && fixture.isFileURL ? url.standardizedFileURL.path == fixture.standardizedFileURL.path : url == fixture }
             if let string = raw as? String, let url = URL(string: string) { return url.isFileURL && fixture.isFileURL ? url.standardizedFileURL.path == fixture.standardizedFileURL.path : url == fixture }
@@ -23,7 +23,7 @@ enum TextEditVerification {
         }
         if finderFixture, fixture.lastPathComponent.hasPrefix("Rightnest-Finder-Verification-"),
            (client.value(window, kAXTitleAttribute) as? String) == fixture.lastPathComponent { return true }
-        if matches(client.value(window, kAXDocumentAttribute)) { return true }
+        if nativeDocument && matches(client.value(window, kAXDocumentAttribute)) { return true }
         var budget = 100
         var matching = 0, other = 0
         func visit(_ node: AXUIElement, depth: Int) {
@@ -73,7 +73,7 @@ enum TextEditVerification {
             try await wait("Disposable document did not open") {
                 guard let windows = client.value(AXUIElementCreateApplication(running.processIdentifier), kAXWindowsAttribute) as? [AXUIElement] else { return false }
                 fixtureWindow = windows.first {
-                    return matchesFixture($0, fixture: fixture, client: client, finderFixture: applicationID == "com.apple.finder")
+                    return matchesFixture($0, fixture: fixture, client: client, finderFixture: applicationID == "com.apple.finder", nativeDocument: ["com.apple.TextEdit", "com.apple.Preview"].contains(applicationID))
                 }
                 return fixtureWindow != nil
             }
@@ -107,7 +107,7 @@ enum TextEditVerification {
             try await wait("Disposable document did not become focused") {
                 guard let front = NSWorkspace.shared.frontmostApplication, front.bundleIdentifier == applicationID,
                       let found = client.target(pid: front.processIdentifier),
-                      matchesFixture(found.window, fixture: fixture, client: client, finderFixture: applicationID == "com.apple.finder") else { return false }
+                      matchesFixture(found.window, fixture: fixture, client: client, finderFixture: applicationID == "com.apple.finder", nativeDocument: ["com.apple.TextEdit", "com.apple.Preview"].contains(applicationID)) else { return false }
                 target = found; return true
             }
             guard let target else { throw Failure(message: "No verified target") }
@@ -115,12 +115,12 @@ enum TextEditVerification {
             try await wait("Control panel did not appear") { model.verificationPanelVisible }
             report["panel"] = "visible"
             if browserFixture != nil {
-                for _ in 0..<30 {
+                for _ in 0..<300 {
                     try await Task.sleep(for: .milliseconds(100))
                     guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.pid else { throw Failure(message: "Focus changed during stability observation") }
                     guard model.verificationPanelVisible else { throw Failure(message: "Panel disappeared during stable-window observation") }
                 }
-                report["stability"] = "passed: 30 visible samples over 3 seconds"
+                report["stability"] = "passed: 300 visible samples over 30 seconds"
             }
             guard model.invokeVerificationAction(.minimize) else { throw Failure(message: "Minimize button unavailable") }
             report["minimizeDispatchStatus"] = model.status
@@ -171,6 +171,7 @@ enum TextEditVerification {
         }
         if let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier, let t = client.target(pid: pid) { report["finalFrame"] = NSStringFromRect(t.frame) }
         report["frontApplication"] = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none"
+        report["events"] = model.verificationEvents.joined(separator: "\n")
         report["actionTrace"] = await model.verificationTrace().joined(separator: "\n")
         report["lastActionResult"] = model.lastActionResult
         report["lastAppStatus"] = model.status

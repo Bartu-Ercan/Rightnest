@@ -1,7 +1,7 @@
 import Foundation
 
 func L(_ english: String) -> String {
-    let technicalPrefixes = ["Missing geometry", "Unknown accessibility", "Unverified title bar surface", "Incomplete title bar", "Title bar hit test failed", "Unknown owner"]
+    let technicalPrefixes = ["Missing geometry", "Missing title bar", "Unknown accessibility", "Unverified title bar surface", "Incomplete title bar", "Title bar hit test failed", "Unknown owner"]
     let message = technicalPrefixes.contains(where: { english.hasPrefix($0) }) ? "Window layout could not be verified" : english
     let turkish = Locale.preferredLanguages.first?.hasPrefix("tr") == true
     return turkish ? translations[message] ?? message : message

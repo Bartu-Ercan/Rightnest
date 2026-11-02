@@ -6,6 +6,11 @@ struct WelcomeView: View {
     @ObservedObject var model: AppModel
     @State private var applications = false
     @State private var query = ""
+    private var version: String {
+        let release = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.0"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "dev"
+        return release + " (" + build + ")"
+    }
     private var choices: [(String, String)] {
         model.availableApplications.filter { query.isEmpty || $0.1.localizedCaseInsensitiveContains(query) }
     }
@@ -21,7 +26,7 @@ struct WelcomeView: View {
                 Spacer()
                 Label(L("On your Mac. Only."), systemImage: "lock.shield")
                     .font(.caption).foregroundStyle(.secondary)
-                Text("0.1.0 · " + L("PREVIEW")).font(.caption).foregroundStyle(.secondary)
+                Text(version + " · " + L("PREVIEW")).font(.caption).foregroundStyle(.secondary)
             }.padding(18).frame(width: 170).frame(maxHeight: .infinity)
                 .background(Color(nsColor: .underPageBackgroundColor))
             Divider()

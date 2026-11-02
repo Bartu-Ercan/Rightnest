@@ -15,8 +15,12 @@ final class AccessibilityClient {
     private(set) var layoutDiagnostic = ""
     private var surfaceSnapshot: [Surface]?
     private var surfaceSnapshotLoaded = false
+    private var observedOcclusions: [CGRect] = []
     private(set) var ownPanelOcclusion = false
     private(set) var placementIssue = "Unverified title bar"
+    #if DEBUG
+    private var surfaceDiagnostic = ""
+    #endif
     func value(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
         var result: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, name as CFString, &result) == .success else { return nil }
@@ -127,7 +131,10 @@ final class AccessibilityClient {
     }
 
     func placement(_ target: WindowTarget, overlayNumber: Int? = nil, screens: [CGRect] = [], preferred: CGRect? = nil) -> CGRect? {
-        surfaceSnapshot = nil; surfaceSnapshotLoaded = false
+        surfaceSnapshot = nil; surfaceSnapshotLoaded = false; observedOcclusions.removeAll()
+        #if DEBUG
+        surfaceDiagnostic = ""
+        #endif
         if let titlebar = titlebarPlacement(target, overlayNumber: overlayNumber, preferred: preferred) { return titlebar }
         layoutDiagnostic += "\nTitlebar result: " + placementIssue
         // An external shelf is allowed only in measured, vacant desktop space.
@@ -226,10 +233,10 @@ final class AccessibilityClient {
         #endif
         for candidate in candidates {
             guard ProcessInfo.processInfo.systemUptime < deadline else { placementIssue = "Inspection timed out"; return nil }
-            guard !obstacles.contains(where: { $0.intersects(candidate) }) else { placementIssue = "No clear space in right title bar"; continue }
+            guard !(obstacles + observedOcclusions).contains(where: { $0.intersects(candidate) }) else { placementIssue = "No clear space in right title bar"; continue }
             if let rect = verifiedPlacement(target, candidate: candidate, overlayNumber: overlayNumber, deadline: deadline, backgrounds: verifiedBackgrounds, toolbarFrames: toolbarFrames) { return rect }
             #if DEBUG
-            if descriptions.count < 16 { descriptions.append("candidate " + NSStringFromRect(candidate) + " rejected: " + placementIssue) }
+            if descriptions.count < 16 { descriptions.append("candidate " + NSStringFromRect(candidate) + " rejected: " + placementIssue + " " + surfaceDiagnostic) }
             #endif
         }
         return nil
@@ -258,6 +265,13 @@ final class AccessibilityClient {
                     placementIssue = "Unknown owner over title bar"; return nil
                 }
                 guard pid == target.pid else {
+                    #if DEBUG
+                    surfaceDiagnostic = "hit pid \(pid), role " + (value(hit, kAXRoleAttribute) as? String ?? "unknown")
+                    #endif
+                    if pid != ProcessInfo.processInfo.processIdentifier {
+                        let covering = (value(hit, kAXRoleAttribute) as? String) == kAXWindowRole ? hit : element(hit, kAXWindowAttribute)
+                        if let covering, let rect = frame(covering), WindowGeometry.valid(rect) { observedOcclusions.append(rect) }
+                    }
                     ownPanelOcclusion = pid == ProcessInfo.processInfo.processIdentifier
                     if ownPanelOcclusion, let overlayNumber {
                         if overlaySurfaceClear == nil { overlaySurfaceClear = visibleSurface(target, candidate: candidate, overlayNumber: overlayNumber) }
@@ -268,6 +282,7 @@ final class AccessibilityClient {
                 let role = value(hit, kAXRoleAttribute) as? String ?? "unknown role"
                 let ownerWindow = role == kAXWindowRole ? hit : element(hit, kAXWindowAttribute)
                 guard let ownerWindow, CFEqual(ownerWindow, target.window) else {
+                    if let ownerWindow, let rect = frame(ownerWindow), WindowGeometry.valid(rect) { observedOcclusions.append(rect) }
                     placementIssue = "Another window covers the title bar"; return nil
                 }
                 // Safari can return its WebArea for transparent native toolbar

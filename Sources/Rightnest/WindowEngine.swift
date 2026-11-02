@@ -34,8 +34,20 @@ actor WindowEngine {
     }
     private var saved: [Saved] = []
 
-    func inspect(pid: pid_t, overlayNumber: Int?, requireFocus: Bool = true, screens: [CGRect] = []) -> Inspection {
-        guard !Task.isCancelled, AXIsProcessTrusted(), (!requireFocus || client.focusedPID() == pid) else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
+    func inspect(pid: pid_t, overlayNumber: Int?, requireFocus: Bool = true, screens: [CGRect] = []) async -> Inspection {
+        guard !Task.isCancelled, AXIsProcessTrusted() else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
+        if requireFocus {
+            var confirmed = false
+            for attempt in 0..<4 {
+                guard !Task.isCancelled else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
+                if let focused = client.focusedPID() {
+                    guard focused == pid else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
+                    confirmed = true; break
+                }
+                if attempt < 3 { try? await Task.sleep(for: .milliseconds(50)) }
+            }
+            guard confirmed, !Task.isCancelled else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
+        }
         guard let next = client.target(pid: pid) else { return Inspection(snapshot: nil, reason: "Unsupported window state") }
         if let old = target {
             if old.pid != pid || !CFEqual(old.window, next.window) { token &+= 1 }
@@ -164,7 +176,7 @@ actor WindowEngine {
     private func verifiedWindow(window: AXUIElement, pid: pid_t, revision: UInt64) async -> AXUIElement? {
         // A missing reply is not a different target. Retry missing AX data briefly;
         // a real focus/identity change still cancels before the next write.
-        for attempt in 0..<3 {
+        for attempt in 0..<10 {
             guard !Task.isCancelled, token == revision, AXIsProcessTrusted() else {
                 #if DEBUG
                 trace.append("target invalidated: cancelled=\(Task.isCancelled) revision=\(token == revision)")
@@ -188,7 +200,7 @@ actor WindowEngine {
                     return focused
                 }
             }
-            if attempt < 2 { do { try await Task.sleep(for: .milliseconds(50)) } catch { return nil } }
+            if attempt < 9 { do { try await Task.sleep(for: .milliseconds(50)) } catch { return nil } }
         }
         #if DEBUG
         trace.append("target AX data unavailable after bounded retries")

@@ -102,7 +102,13 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     func start() {
         guard timer == nil else { return }
         observer.changed = { [weak self] requiresHide in
-            if requiresHide { self?.invalidate() } else { self?.refresh(settling: true) }
+            #if DEBUG
+            if let self {
+                self.verificationEvents.append((requiresHide ? "hide: " : "recheck: ") + self.observer.lastNotification)
+                if self.verificationEvents.count > 100 { self.verificationEvents.removeFirst() }
+            }
+            #endif
+            if requiresHide { self?.invalidate() } else { self?.refresh() }
         }
         let workspace = NSWorkspace.shared.notificationCenter
         workspaceObserver = workspace.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] _ in
@@ -169,6 +175,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
         if !result { panel.orderOut(nil) }
     }
     #if DEBUG
+    private(set) var verificationEvents: [String] = []
     func verificationLayout() async -> String { await engine.auditLayout() }
     func verificationTrace() async -> [String] { await engine.verificationTrace() }
     var verificationActionIdle: Bool { actionTask == nil }
@@ -248,13 +255,14 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
             inspectionTask?.cancel(); inspectionTask = nil
             actionTask?.cancel(); actionTask = nil
             generation &+= 1
-            status = L(!enabled ? "Paused" : !trusted ? "Window control permission needed" :
+            let nextStatus = L(!enabled ? "Paused" : !trusted ? "Window control permission needed" :
                 !textEditEnabled ? "External controls are off" : "Controls hidden for this application")
+            if status != nextStatus { status = nextStatus }
             return
         }
         guard actionTask == nil, inspectionTask == nil else { return }
         // ponytail: one bounded fallback interval; AX notifications bypass it.
-        if !settling && !panel.isVisible && Date().timeIntervalSince(lastInspection) < 1 { return }
+        if !settling && Date().timeIntervalSince(lastInspection) < (panel.isVisible ? 0.3 : 1) { return }
         lastInspection = Date()
         observer.watch(pid: front.processIdentifier)
         let revision = generation, pid = front.processIdentifier
@@ -272,11 +280,20 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
                 self.panel.orderOut(nil); return
             }
             guard let snapshot = result.snapshot, let primary = NSScreen.screens.first else {
-                self.panel.orderOut(nil); self.status = L("Hidden") + ": " + L(result.reason); return
+                #if DEBUG
+                self.verificationEvents.append("inspection failed: " + result.reason + "\n" + (await self.engine.auditLayout()))
+                if self.verificationEvents.count > 100 { self.verificationEvents.removeFirst() }
+                #endif
+                guard !Task.isCancelled, self.generation == revision else { return }
+                self.panel.orderOut(nil)
+                let nextStatus = L("Hidden") + ": " + L(result.reason)
+                if self.status != nextStatus { self.status = nextStatus }
+                return
             }
             self.panel.show(at: WindowGeometry.flip(snapshot.placement, primaryTop: primary.frame.maxY),
                 enabled: snapshot.actions, restoring: snapshot.restoring) { [weak self] action in self?.queue(action, snapshot: snapshot) }
-            self.status = L(snapshot.frame.contains(snapshot.placement) ? "Controls active" : "Controls outside window") + " · " + (front.localizedName ?? bundle)
+            let nextStatus = L(snapshot.frame.contains(snapshot.placement) ? "Controls active" : "Controls outside window") + " · " + (front.localizedName ?? bundle)
+            if self.status != nextStatus { self.status = nextStatus }
         }
     }
     private func queue(_ action: WindowAction, snapshot: WindowSnapshot) {

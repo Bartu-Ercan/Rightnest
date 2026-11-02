@@ -9,6 +9,7 @@ final class WindowObserver {
     private var pid: pid_t?
     private var window: AXUIElement?
     var changed: ((Bool) -> Void)?
+    private(set) var lastNotification = ""
     private let appNotifications = [kAXFocusedWindowChangedNotification, kAXWindowCreatedNotification,
                                     kAXFocusedUIElementChangedNotification]
     private let windowNotifications = [kAXMovedNotification, kAXResizedNotification,
@@ -21,11 +22,13 @@ final class WindowObserver {
         guard let pid else { return }
         self.pid = pid
         var result: AXObserver?
-        let callback: AXObserverCallback = { _, _, notification, context in
+        let callback: AXObserverCallback = { source, _, notification, context in
             guard let context else { return }
             // Source is installed exclusively on the main run loop.
             MainActor.assumeIsolated {
                 let owner = Unmanaged<WindowObserver>.fromOpaque(context).takeUnretainedValue()
+                guard let current = owner.observer, CFEqual(current, source) else { return }
+                owner.lastNotification = notification as String
                 let contentOnly = notification as String == kAXFocusedUIElementChangedNotification || notification as String == kAXTitleChangedNotification
                 owner.changed?(!contentOnly)
             }
