@@ -165,6 +165,7 @@ final class AccessibilityClient {
         var obstacles: [CGRect] = []
         var verifiedBackgrounds: [AXUIElement] = []
         var toolbarFrames: [CGRect] = []
+        var navigationSpacers: [CGRect] = []
         var navigationContext: (bar: AXUIElement, spacer: CGRect)?
         var findingNavigationRow = true
         var descriptions: [String] = []
@@ -192,6 +193,7 @@ final class AccessibilityClient {
                 let navigation = role == kAXGroupRole && navigationSpacer(node, window: target.frame)
                 if role == kAXGroupRole && (navigation || chromiumTabBackground(node, window: target.frame)) {
                     verifiedBackgrounds.append(node)
+                    if navigation { navigationSpacers.append(rect) }
                     if navigation, let parent = element(node, kAXParentAttribute),
                        Placement.candidates(window: target.frame, rowY: rect.midY-13).contains(where: { rect.contains($0) }) {
                         navigationContext = (parent, rect)
@@ -223,7 +225,7 @@ final class AccessibilityClient {
                 candidates = preferred.map { p in row.filter { $0 == p } + row.filter { $0 != p } } ?? row
                 searchArea = row.reduce(first) { $0.union($1) }
                 findingNavigationRow = false
-                obstacles.removeAll(); verifiedBackgrounds.removeAll(); toolbarFrames.removeAll()
+                obstacles.removeAll(); verifiedBackgrounds.removeAll(); toolbarFrames.removeAll(); navigationSpacers.removeAll()
                 descriptions.append("Scoped native navigation row " + NSStringFromRect(searchArea))
                 guard collect(context.bar, depth: 0) else { return nil }
             }
@@ -234,14 +236,14 @@ final class AccessibilityClient {
         for candidate in candidates {
             guard ProcessInfo.processInfo.systemUptime < deadline else { placementIssue = "Inspection timed out"; return nil }
             guard !(obstacles + observedOcclusions).contains(where: { $0.intersects(candidate) }) else { placementIssue = "No clear space in right title bar"; continue }
-            if let rect = verifiedPlacement(target, candidate: candidate, overlayNumber: overlayNumber, deadline: deadline, backgrounds: verifiedBackgrounds, toolbarFrames: toolbarFrames) { return rect }
+            if let rect = verifiedPlacement(target, candidate: candidate, overlayNumber: overlayNumber, deadline: deadline, backgrounds: verifiedBackgrounds, toolbarFrames: toolbarFrames, navigationSpacers: navigationSpacers) { return rect }
             #if DEBUG
             if descriptions.count < 16 { descriptions.append("candidate " + NSStringFromRect(candidate) + " rejected: " + placementIssue + " " + surfaceDiagnostic) }
             #endif
         }
         return nil
     }
-    private func verifiedPlacement(_ target: WindowTarget, candidate: CGRect, overlayNumber: Int?, deadline: TimeInterval, backgrounds: [AXUIElement], toolbarFrames: [CGRect]) -> CGRect? {
+    private func verifiedPlacement(_ target: WindowTarget, candidate: CGRect, overlayNumber: Int?, deadline: TimeInterval, backgrounds: [AXUIElement], toolbarFrames: [CGRect], navigationSpacers: [CGRect]) -> CGRect? {
         ownPanelOcclusion = false
         // Hit-test visible geometry too. A different window, button, or unknown node rejects placement.
         placementIssue = "Another surface covers the title bar"
@@ -288,8 +290,12 @@ final class AccessibilityClient {
                 // Safari can return its WebArea for transparent native toolbar
                 // background. Correct only a geometrically disjoint content hit
                 // inside a completely inspected native toolbar, never real content.
-                let disjointContentHit = role == "AXWebArea" && frame(hit).map { WindowGeometry.valid($0) && !$0.intersects(candidate) } == true && toolbarFrames.contains { $0.contains(candidate) }
-                guard [kAXWindowRole, kAXToolbarRole].contains(role) || backgrounds.contains(where: { CFEqual($0, hit) }) || disjointContentHit else {
+                let disjointContentHit = role == "AXWebArea" && WindowGeometry.disjointHit(frame(hit), from: candidate, inside: toolbarFrames)
+                // Catalyst can report a sibling call button for a point in its
+                // measured navigation spacer. Correct only an out-of-bounds
+                // hit in that exact inspected spacer, never an overlapping button.
+                let disjointNavigationHit = role == kAXButtonRole && WindowGeometry.disjointHit(frame(hit), from: candidate, inside: navigationSpacers, clearance: 5)
+                guard [kAXWindowRole, kAXToolbarRole].contains(role) || backgrounds.contains(where: { CFEqual($0, hit) }) || disjointContentHit || disjointNavigationHit else {
                     placementIssue = "Unverified title bar surface: \(role) " + (frame(hit).map { NSStringFromRect($0) } ?? "missing"); return nil
                 }
             }

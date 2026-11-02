@@ -2,6 +2,14 @@ import Foundation
 import CoreGraphics
 
 public enum WindowGeometry {
+    /// Correct an out-of-bounds AX hit only inside a fully measured background.
+    public static func disjointHit(_ reported: CGRect?, from candidate: CGRect,
+                                   inside backgrounds: [CGRect], clearance: CGFloat = 0) -> Bool {
+        guard let reported, valid(reported), valid(candidate), clearance.isFinite, clearance >= 0,
+              backgrounds.contains(where: { valid($0) && $0.contains(candidate) }) else { return false }
+        return !reported.insetBy(dx: -clearance, dy: -clearance).intersects(candidate)
+    }
+
     /// AX and AppKit share points, but use opposite vertical origins. The desktop
     /// reference is the primary display, not whichever display currently has focus.
     public static func flip(_ rect: CGRect, primaryTop: CGFloat) -> CGRect {

@@ -52,4 +52,12 @@ final class WindowGeometryTests: XCTestCase {
         XCTAssertTrue(SurfaceOrder.outsideIsClear([panel], candidate: rect, overlayNumber: 1, ownPID: 10))
         XCTAssertFalse(SurfaceOrder.outsideIsClear([panel, other], candidate: rect, overlayNumber: 1, ownPID: 10))
     }
+    func testDisjointNativeHitRequiresMeasuredEmptyScope() {
+        let gap = CGRect(x: 627, y: 93, width: 314, height: 32)
+        let strip = CGRect(x: 829, y: 96, width: 102, height: 26)
+        let button = CGRect(x: 957, y: 95, width: 28, height: 28)
+        XCTAssertTrue(WindowGeometry.disjointHit(button, from: strip, inside: [gap], clearance: 5))
+        XCTAssertFalse(WindowGeometry.disjointHit(strip, from: strip, inside: [gap], clearance: 5))
+        XCTAssertFalse(WindowGeometry.disjointHit(button, from: strip, inside: []))
+    }
 }

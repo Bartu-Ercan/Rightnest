@@ -1,0 +1,291 @@
+{
+  "application": "net.whatsapp.WhatsApp",
+  "version": "26.38.74",
+  "os": "macOS 27.0 (26A428)",
+  "kind": "read-only foreground visibility, no actions sent",
+  "observations": [
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "false",
+      "time": "2026-11-02T21:28:24Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:25Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:27Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:28Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:29Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:30Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:31Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:33Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:34Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:35Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:36Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:38Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:39Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:40Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:41Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:43Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:44Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:45Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:46Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:48Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:49Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:50Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:51Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:52Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:54Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:55Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:56Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:57Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:28:59Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:00Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:01Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:02Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:04Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:05Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:06Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:08Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:09Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:10Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:11Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:13Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:14Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:15Z"
+    },
+    {
+      "application": "net.whatsapp.WhatsApp",
+      "panelVisible": "true",
+      "time": "2026-11-02T21:29:16Z"
+    }
+  ],
+  "layoutObservations": [
+    {
+      "actions": "close,fit,minimize",
+      "application": "net.whatsapp.WhatsApp",
+      "foreground": "true",
+      "frame": "{{11, 81}, {1072, 600}}",
+      "layout": "window {{11, 81}, {1072, 600}} close {{19, 89}, {16, 16}} search {{631, 96}, {300, 26}}\nAXButton {{575, 86}, {56.5, 46}}\nempty AXGroup {{588, 101}, {38.5, 17}}\nVerified native toolbar spacer {{627, 93}, {314.5, 32}}\nScoped native navigation row {{631, 96}, {300, 26}}\nAXButton {{575, 86}, {56.5, 46}}\nVerified native toolbar spacer {{627, 93}, {314.5, 32}}\ncollection ms 86",
+      "os": "Version 27.0 (Build 26A428)",
+      "placement": "Controls active",
+      "time": "2026-11-02T21:28:24Z",
+      "version": "26.38.74"
+    },
+    {
+      "actions": "none",
+      "application": "net.whatsapp.WhatsApp",
+      "foreground": "true",
+      "frame": "unavailable",
+      "layout": "window {{0, 30}, {1920, 992}} close {{8, 38}, {16, 16}} search {{964, 33}, {948, 26}}\nempty AXGroup {{0, 30}, {1920, 992}}\ncollection ms 3\nTitlebar result: No clear space in right title bar",
+      "os": "Version 27.0 (Build 26A428)",
+      "placement": "Unsupported window state",
+      "time": "2026-11-02T21:28:49Z",
+      "version": "26.38.74"
+    },
+    {
+      "actions": "close,fit,minimize",
+      "application": "net.whatsapp.WhatsApp",
+      "foreground": "true",
+      "frame": "{{11, 81}, {1072, 600}}",
+      "layout": "window {{11, 81}, {1072, 600}} close {{19, 89}, {16, 16}} search {{631, 96}, {300, 26}}\nAXButton {{575, 86}, {56.5, 46}}\nempty AXGroup {{588, 101}, {38.5, 17}}\nVerified native toolbar spacer {{627, 93}, {314.5, 32}}\nScoped native navigation row {{631, 96}, {300, 26}}\nAXButton {{575, 86}, {56.5, 46}}\nVerified native toolbar spacer {{627, 93}, {314.5, 32}}\ncollection ms 57",
+      "os": "Version 27.0 (Build 26A428)",
+      "placement": "Controls active",
+      "time": "2026-11-02T21:28:50Z",
+      "version": "26.38.74"
+    },
+    {
+      "actions": "none",
+      "application": "net.whatsapp.WhatsApp",
+      "foreground": "false",
+      "frame": "unavailable",
+      "layout": "window {{11, 81}, {1072, 600}} close {{19, 89}, {16, 16}} search {{631, 96}, {300, 26}}\nAXButton {{575, 86}, {56.5, 46}}\nempty AXGroup {{588, 101}, {38.5, 17}}\nVerified native toolbar spacer {{627, 93}, {314.5, 32}}\nScoped native navigation row {{631, 96}, {300, 26}}\nAXButton {{575, 86}, {56.5, 46}}\nVerified native toolbar spacer {{627, 93}, {314.5, 32}}\ncollection ms 47\ncandidate {{829, 96}, {102, 26}} rejected: Title bar hit test failed (-25204) \ncandidate {{865, 96}, {66, 26}} rejected: Title bar hit test failed (-25204) hit pid 26592, role AXButton\ncandidate {{811, 96}, {102, 26}} rejected: Title bar hit test failed (-25204) hit pid 26592, role AXButton\ncandidate {{847, 96}, {66, 26}} rejected: Title bar hit test failed (-25204) hit pid 26592, role AXButton\ncandidate {{793, 96}, {102, 26}} rejected: Title bar hit test failed (-25204) hit pid 26592, role AXButton\ncandidate {{829, 96}, {66, 26}} rejected: Title bar hit test failed (-25204) hit pid 26592, role AXButton\nTitlebar result: Inspection timed out",
+      "os": "Version 27.0 (Build 26A428)",
+      "placement": "No safe titlebar or outside space",
+      "time": "2026-11-02T21:29:18Z",
+      "version": "26.38.74"
+    },
+    {
+      "actions": "none",
+      "application": "net.whatsapp.WhatsApp",
+      "foreground": "false",
+      "frame": "unavailable",
+      "layout": "window {{0, 30}, {1920, 992}} close {{8, 38}, {16, 16}} search {{964, 33}, {948, 26}}\nempty AXGroup {{0, 30}, {1920, 992}}\ncollection ms 3\nTitlebar result: No clear space in right title bar",
+      "os": "Version 27.0 (Build 26A428)",
+      "placement": "Unsupported window state",
+      "time": "2026-11-02T21:29:24Z",
+      "version": "26.38.74"
+    },
+    {
+      "actions": "none",
+      "application": "net.whatsapp.WhatsApp",
+      "foreground": "false",
+      "frame": "unavailable",
+      "layout": "window {{11, 81}, {1072, 600}} close {{19, 89}, {16, 16}} search {{631, 96}, {300, 26}}\nAXButton {{575, 86}, {56.5, 46}}\nempty AXGroup {{588, 101}, {38.5, 17}}\nVerified native toolbar spacer {{627, 93}, {314.5, 32}}\nScoped native navigation row {{631, 96}, {300, 26}}\nAXButton {{575, 86}, {56.5, 46}}\nVerified native toolbar spacer {{627, 93}, {314.5, 32}}\ncollection ms 62\ncandidate {{829, 96}, {102, 26}} rejected: Another surface covers the title bar hit pid 16147, role AXGroup\nTitlebar result: No clear space in right title bar",
+      "os": "Version 27.0 (Build 26A428)",
+      "placement": "No safe titlebar or outside space",
+      "time": "2026-11-02T21:29:25Z",
+      "version": "26.38.74"
+    }
+  ]
+}

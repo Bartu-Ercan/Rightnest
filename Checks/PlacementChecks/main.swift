@@ -111,3 +111,13 @@ require(SurfaceOrder.overlayCoversClearTarget([overlay, targetSurface], overlayN
 require(!SurfaceOrder.overlayCoversClearTarget([blocker, overlay, targetSurface], overlayNumber: 10, ownPID: 1, targetPID: 2, targetFrame: targetFrame, candidate: candidate), "A surface above the overlay prevents the shortcut")
 require(!SurfaceOrder.overlayCoversClearTarget([overlay, targetSurface], overlayNumber: 10, ownPID: 1, targetPID: 2, targetFrame: targetFrame, candidate: candidate.offsetBy(dx: 8, dy: 0)), "Partial panel coverage must use real hit tests")
 print("Detached placement and overlay stability: 10 checks passed")
+
+let nativeGap = CGRect(x: 627, y: 93, width: 314, height: 32)
+let nativeControls = CGRect(x: 829, y: 96, width: 102, height: 26)
+let misreportedCallButton = CGRect(x: 957, y: 95, width: 28, height: 28)
+require(WindowGeometry.disjointHit(misreportedCallButton, from: nativeControls, inside: [nativeGap], clearance: 5), "Out-of-bounds native hit can be corrected inside a known spacer")
+require(!WindowGeometry.disjointHit(nativeControls, from: nativeControls, inside: [nativeGap], clearance: 5), "Real overlapping buttons are never corrected")
+require(!WindowGeometry.disjointHit(misreportedCallButton, from: nativeControls, inside: []), "Anonymous blank areas do not permit correction")
+require(!WindowGeometry.disjointHit(nil, from: nativeControls, inside: [nativeGap]), "Missing hit geometry is rejected")
+require(!WindowGeometry.disjointHit(CGRect(x: 934, y: 96, width: 28, height: 28), from: nativeControls, inside: [nativeGap], clearance: 5), "Safety clearance remains occupied")
+print("Native disjoint-hit correction: 5 checks passed")

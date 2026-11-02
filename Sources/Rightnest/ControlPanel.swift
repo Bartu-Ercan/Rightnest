@@ -40,11 +40,16 @@ final class ControlPanel: NSPanel {
     override var canBecomeMain: Bool { false }
     func show(at frame: CGRect, enabled: Set<WindowAction>, restoring: Bool = false, action: @escaping (WindowAction) -> Void) {
         self.action = action
-        for (kind, button) in buttons { button.isEnabled = enabled.contains(kind) }
+        for (kind, button) in buttons {
+            let next = enabled.contains(kind)
+            if button.isEnabled != next { button.isEnabled = next }
+        }
         if let button = buttons[.fit] {
             let label = L(restoring ? "Restore window" : "Fit window to screen")
-            button.toolTip = label; button.setAccessibilityLabel(label)
-            button.image = NSImage(systemSymbolName: restoring ? "square.on.square" : "square", accessibilityDescription: label)
+            if button.toolTip != label {
+                button.toolTip = label; button.setAccessibilityLabel(label)
+                button.image = NSImage(systemSymbolName: restoring ? "square.on.square" : "square", accessibilityDescription: label)
+            }
         }
         if self.frame != frame { setFrame(frame, display: true) }
         if !isVisible { orderFrontRegardless() }
