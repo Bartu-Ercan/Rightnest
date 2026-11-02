@@ -4,7 +4,7 @@ Root: ~/Desktop/vibecoding/Rightnest. User chose Rightnest / A Corner logo. Nati
 
 ## Current delivery (2026-11-03)
 
-Source code: 8682e26. Final CI https://github.com/Bartu-Ercan/Rightnest/actions/runs/41529100917 PASSED: 15 XCTest cases, 64 standalone checks, 24 native hover/layout combinations and arm64 release/bundle validation. Later pending changes are documentation only. Preview 4 / build 5 release candidate is ready; publish next at https://github.com/Bartu-Ercan/Rightnest/releases/tag/v0.1.0-preview.4. Do not call publication complete until gh confirms it.
+Source code: 8682e26. Final CI https://github.com/Bartu-Ercan/Rightnest/actions/runs/41529100917 PASSED: 15 XCTest cases, 64 standalone checks, 24 native hover/layout combinations and arm64 release/bundle validation. Later pending changes are documentation only. Preview 4 / build 5 PUBLISHED: https://github.com/Bartu-Ercan/Rightnest/releases/tag/v0.1.0-preview.4 (release target 8643df3; runtime code identical to CI-tested 8682e26). Public DMG and checksum were re-downloaded to .build/download-preview-4 and SHA-256 matched.
 
 Build-5 DMG was regenerated with updated installation notes. Read-only mount, strict signature, arm64, icon, Applications link, image verification and SHA passed. RELEASE copy installed at ~/Applications/Rightnest.app, strict signature verified, build 5, launched -g without test flags. Existing signing identity is unchanged. This does not prove clean-user browser-download/update permission continuity.
 
@@ -28,7 +28,7 @@ Settings: Overview/Applications sidebar, A Corner window illustration, semantic 
 
 ## Next work / limits
 
-1. Publish Preview 4 only after the passed CI above, re-download assets and verify checksum, then record the actual release URL/result here.
+1. Preview 4 distribution is complete. Next work is actual isolated app/edge-case verification, not a claim of broad-beta completion.
 2. Actually isolated account/device: physical external-panel pointer/composite checks, fuller Chrome/Safari/WhatsApp toolbar/tab/dialog cases and WhatsApp actions. A different macOS Space is not process/focus isolation. Do not control personal documents/chats. User studies in the other desktop; avoid foreground windows/new permission prompts.
 3. Multi-display/Spaces/Mission Control/Stage Manager, sleep/wake, one-hour CPU/RSS soak, clean-user browser-download/install/update/remove and older macOS coverage. Broad beta/stable gates remain open; see plan-audit.md.
 
