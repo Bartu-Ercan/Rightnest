@@ -40,3 +40,5 @@ Computer Use coordinate clicks on the own demo verified fit, return to original 
 The limited preview is intended for informed testers; broad beta gates remain open. No clean-account or long-duration claim is made.
 
 Short passive sample on macOS 27.0: 60.01 seconds, 31 samples, mean CPU 0.283% of one core, RSS 20,832 → 19,136 KiB. This is a short background sample, not the planned one-hour soak or an active-overlay benchmark. Packaged Gatekeeper assessment rejects the self-signed app (origin: Starboard Local Development); no bypass was performed. Preview notes explicitly disclose the lack of Developer ID/notarization.
+
+Current release-source CI run 41455384828 passed. Public download was re-downloaded and SHA-256 verification passed. Installed release binary passive sample: 30.02 seconds, mean CPU 0.233%, RSS 23,776 → 23,872 KiB. This is not long-duration or active-overlay validation.

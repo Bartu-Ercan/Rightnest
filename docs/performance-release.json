@@ -1,0 +1,10 @@
+{
+  "durationSeconds": 30.02,
+  "averageCPUPercent": 0.233,
+  "initialRSSKiB": 23776,
+  "finalRSSKiB": 23872,
+  "peakRSSKiB": 23872,
+  "samples": 16,
+  "scope": "Passive short sample; not a one-hour soak or active-overlay benchmark",
+  "os": "27.0"
+}
