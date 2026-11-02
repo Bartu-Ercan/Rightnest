@@ -71,7 +71,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     }
     func showSettings() {
         if let welcome { welcome.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); return }
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 580, height: 680),
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 780, height: 660),
             styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.title = L("Rightnest Settings"); window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(rootView: WelcomeView(model: self))
@@ -101,7 +101,9 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     }
     func start() {
         guard timer == nil else { return }
-        observer.changed = { [weak self] in self?.invalidate() }
+        observer.changed = { [weak self] requiresHide in
+            if requiresHide { self?.invalidate() } else { self?.refresh(settling: true) }
+        }
         let workspace = NSWorkspace.shared.notificationCenter
         workspaceObserver = workspace.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.invalidate() }
@@ -122,7 +124,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
         #if DEBUG
         if let index = CommandLine.arguments.firstIndex(of: "--audit-compatibility"), CommandLine.arguments.indices.contains(index + 1) {
             let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
-            Task { await CompatibilityAudit.run(directory: directory) }
+            Task { await CompatibilityAudit.run(directory: directory, model: self) }
         }
         if let index = CommandLine.arguments.firstIndex(of: "--verify-app"), CommandLine.arguments.indices.contains(index + 3) {
             let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
@@ -251,16 +253,18 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
         }
         guard actionTask == nil, inspectionTask == nil else { return }
         // ponytail: one bounded fallback interval; AX notifications bypass it.
-        if !settling && !panel.isVisible && Date().timeIntervalSince(lastInspection) < 3 { return }
+        if !settling && !panel.isVisible && Date().timeIntervalSince(lastInspection) < 1 { return }
         lastInspection = Date()
         observer.watch(pid: front.processIdentifier)
         let revision = generation, pid = front.processIdentifier
         let overlayNumber = panel.isVisible ? panel.windowNumber : nil
+        guard let primary = NSScreen.screens.first else { return }
+        let screens = NSScreen.screens.map { WindowGeometry.flip($0.visibleFrame, primaryTop: primary.frame.maxY) }
         inspectionTask = Task { [weak self] in
             guard let self else { return }
             if settling { try? await Task.sleep(for: .milliseconds(140)) }
             guard !Task.isCancelled else { return }
-            let result = await self.engine.inspect(pid: pid, overlayNumber: overlayNumber)
+            let result = await self.engine.inspect(pid: pid, overlayNumber: overlayNumber, screens: screens)
             guard !Task.isCancelled, self.generation == revision else { return }
             self.inspectionTask = nil
             guard self.enabled, self.trusted, NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
@@ -271,7 +275,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
             }
             self.panel.show(at: WindowGeometry.flip(snapshot.placement, primaryTop: primary.frame.maxY),
                 enabled: snapshot.actions, restoring: snapshot.restoring) { [weak self] action in self?.queue(action, snapshot: snapshot) }
-            self.status = L("Controls active") + " · " + (front.localizedName ?? bundle)
+            self.status = L(snapshot.frame.contains(snapshot.placement) ? "Controls active" : "Controls outside window") + " · " + (front.localizedName ?? bundle)
         }
     }
     private func queue(_ action: WindowAction, snapshot: WindowSnapshot) {

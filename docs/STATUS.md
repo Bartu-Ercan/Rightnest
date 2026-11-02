@@ -3,6 +3,14 @@
 Product: Rightnest, formerly Starboard. Root: ~/Desktop/vibecoding/Rightnest.
 User choices: extra right-side controls, originals retained, hide on uncertainty; minimize / fit-restore / close; Apple Silicon; MIT; no paid Developer ID membership; logo A Corner selected. User is studying: do not open or focus test windows on their desktop.
 
+## Active work — popular apps, stability and settings refinement
+
+User observed Chrome/WhatsApp missing controls and intermittent Safari. New request: fix actual popular-app behavior and improve design after reviewing orkunisitmak/nashi-app. User accepted an external shelf when titlebar safety cannot be verified (2026-11-02). It must remain within usable display space and avoid every other window. A maximized window with no outside margin still cannot host a shelf; do not silently resize it or cover its content.
+
+In progress (not yet released): native Chromium tab-strip filler recognition is narrowly scoped to an empty, actionless ChromeAXNodeId group beside native tabs; anonymous custom groups remain blocked. AX traversal depth increased from 7 to 16, with 160-node/400ms bounds retained. Content focus/title notifications recheck without hiding; geometry/window notifications still hide immediately. Complete-overlay revalidation checks WindowServer ordering/coverage to avoid repeated per-point AX hits. External placement checks actual free desktop space. Settings now has overview/application sections, an explanatory corner illustration, native groups, app icons and searchable exclusions. No Nashi code/artwork copied; source reviewed as reference only.
+
+Next: finish local checks; test disposable Chrome guest and Safari fixture action/stability flows; verify outside shelf on a controlled custom-layout fixture (do not minimize/close the user's active WhatsApp chat). Inspect rendered settings and app exclusion/search. Update compatibility/validation and run CI before packaging. Chrome and WhatsApp must not be called flawless/verified from eligibility or successful compilation alone. Record any remaining unsupported geometry explicitly.
+
 ## Active work — automatic app discovery and hover colors
 
 User requested: remove app-name restrictions; automatically find verified right-titlebar gaps in new apps (Blender was an example); preserve per-app opt-out; yellow minimize, green fit and red close hover; use apple-design and ponytail; leave reliable resume notes if quota interrupts work.

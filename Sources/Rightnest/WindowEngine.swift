@@ -33,7 +33,7 @@ actor WindowEngine {
     }
     private var saved: [Saved] = []
 
-    func inspect(pid: pid_t, overlayNumber: Int?, requireFocus: Bool = true) -> Inspection {
+    func inspect(pid: pid_t, overlayNumber: Int?, requireFocus: Bool = true, screens: [CGRect] = []) -> Inspection {
         guard AXIsProcessTrusted(), (!requireFocus || client.focusedPID() == pid) else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
         guard let next = client.target(pid: pid) else { return Inspection(snapshot: nil, reason: "Unsupported window state") }
         if let old = target {
@@ -41,7 +41,7 @@ actor WindowEngine {
         } else { token &+= 1 }
         target = next
         saved.removeAll { $0.pid == pid && CFEqual($0.window, next.window) && !WindowGeometry.close($0.record.fitted, next.frame) }
-        guard let rect = client.placement(next, overlayNumber: overlayNumber) else { return Inspection(snapshot: nil, reason: client.placementIssue) }
+        guard let rect = client.placement(next, overlayNumber: overlayNumber, screens: screens) else { return Inspection(snapshot: nil, reason: client.placementIssue) }
         var actions: Set<WindowAction> = []
         if next.close != nil { actions.insert(.close) }
         if next.minimize != nil { actions.insert(.minimize) }
@@ -65,7 +65,7 @@ actor WindowEngine {
             guard !Task.isCancelled, token == snapshot.token, AXIsProcessTrusted(), client.focusedPID() == snapshot.pid,
                   let focused = client.focusedWindow(pid: snapshot.pid), CFEqual(focused, current.window),
                   let frame = client.frame(current.window), WindowGeometry.close(frame, snapshot.frame) else { return "Window action cancelled: target changed" }
-            if client.placement(current) == snapshot.placement { clear = true; break }
+            if client.placement(current, screens: screens) == snapshot.placement { clear = true; break }
             guard client.ownPanelOcclusion || client.placementIssue == "Inspection timed out" || client.placementIssue == "Inspection limit reached" else { return client.placementIssue }
             do { try await Task.sleep(for: .milliseconds(50)) } catch { return "Window action cancelled" }
         }

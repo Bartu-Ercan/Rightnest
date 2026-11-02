@@ -40,57 +40,6 @@ struct MenuContent: View {
     }
 }
 
-struct WelcomeView: View {
-    @ObservedObject var model: AppModel
-    var body: some View {
-        ScrollView { VStack(alignment: .leading, spacing: 22) {
-            HStack(alignment: .top, spacing: 14) {
-                Image(systemName: "rectangle.righthalf.inset.filled")
-                    .font(.system(size: 32, weight: .medium)).foregroundStyle(.tint)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(L("Rightnest")).font(.largeTitle.weight(.semibold))
-                    Text(L("Window controls. On your right.")).font(.title3).foregroundStyle(.secondary)
-                }
-                Spacer()
-                Text(L("PREVIEW")).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                    .padding(.horizontal, 9).padding(.vertical, 5).background(.quaternary, in: Capsule())
-            }
-            PermissionCard(model: model)
-            VStack(alignment: .leading, spacing: 9) {
-                Text(L("Try it first, without permission")).font(.headline)
-                Text(L("A safe test window lets you try the three right-side controls before allowing access to other apps."))
-                    .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                Button(L("Open Test Window")) { model.openDemo() }
-            }
-            if model.trusted {
-                Toggle(L("Automatically place controls in other apps"), isOn: $model.textEditEnabled).font(.callout)
-            }
-            VStack(alignment: .leading, spacing: 9) {
-                Toggle(L("Launch at login"), isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) }))
-                if !model.loginMessage.isEmpty { Text(model.loginMessage).font(.caption).foregroundStyle(.secondary) }
-                DisclosureGroup(L("Applications")) {
-                    ForEach(model.availableApplications, id: \.0) { item in
-                        Toggle(item.1, isOn: Binding(get: { !model.disabledApplications.contains(item.0) },
-                            set: { model.setApplication(item.0, enabled: $0) }))
-                    }
-                }
-                Text(L("New apps are checked automatically. Controls stay hidden when the window cannot be verified.")).font(.caption).foregroundStyle(.secondary)
-                if !model.onboardingComplete {
-                    Button(L("Continue in menu bar")) { model.finishSetup() }.buttonStyle(.borderedProminent)
-                }
-            }
-            Spacer(minLength: 0)
-            HStack {
-                Circle().fill(model.enabled ? Color.accentColor : Color.secondary).frame(width: 7, height: 7).accessibilityHidden(true)
-                Text(model.status).font(.caption).foregroundStyle(.secondary)
-                Spacer()
-                Toggle(L("Enabled"), isOn: $model.enabled).toggleStyle(.switch).controlSize(.small)
-            }
-        }.padding(28) }
-    }
-}
-
 struct DemoView: View {
     var body: some View {
         VStack(spacing: 18) {

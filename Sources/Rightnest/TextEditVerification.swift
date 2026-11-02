@@ -28,7 +28,7 @@ enum TextEditVerification {
         var matching = 0, other = 0
         func visit(_ node: AXUIElement, depth: Int) {
             budget -= 1
-            guard budget > 0, depth < 7 else { other += 1; return }
+            guard budget > 0, depth < 16 else { other += 1; return }
             if (client.value(node, kAXRoleAttribute) as? String) == "AXWebArea" {
                 if matches(client.value(node, "AXURL")) { matching += 1 } else { other += 1 }
                 return
@@ -113,6 +113,14 @@ enum TextEditVerification {
             report["document"] = applicationID == "com.apple.finder" ? "explicitly prepared unique Finder fixture title verified" : "disposable fixture verified by AXDocument or AXWebArea URL"
             try await wait("Control panel did not appear") { model.verificationPanelVisible }
             report["panel"] = "visible"
+            if browserFixture != nil {
+                for _ in 0..<30 {
+                    try await Task.sleep(for: .milliseconds(100))
+                    guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.pid else { throw Failure(message: "Focus changed during stability observation") }
+                    guard model.verificationPanelVisible else { throw Failure(message: "Panel disappeared during stable-window observation") }
+                }
+                report["stability"] = "passed: 30 visible samples over 3 seconds"
+            }
             guard model.invokeVerificationAction(.minimize) else { throw Failure(message: "Minimize button unavailable") }
             report["minimizeDispatchStatus"] = model.status
             report["minimizePlacementIssue"] = client.placementIssue

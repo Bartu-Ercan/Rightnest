@@ -9,3 +9,5 @@ Preferences store enabled/paused state, disabled app IDs, onboarding completion 
 Debug-only tests create a disposable document and verify its URL before controlling it. Explicit compatibility audits save bundle IDs, versions, geometry, action capability and rejection reasons under a developer-chosen directory. They do not save window titles, document paths, URLs, text or screenshots. These tools are excluded from release builds.
 
 Bug reports are voluntary. Review any attachments and remove private filenames, content or screenshots before posting. Future changes to data handling require updating this document.
+
+Native toolbar spacers: Rightnest checks whether candidate spacer title/description/value/help metadata is empty, and inspects native roles, actions, identifiers and geometry to distinguish known non-pressable filler from actual controls. Those label values are not retained or logged. Outside-window placement uses WindowServer bounds/ordering, not screen pixels. Developer-only compatibility observations record app identifiers, geometry, reasons and panel visibility locally; they do not upload data.

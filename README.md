@@ -2,7 +2,7 @@
 
 Native macOS menu-bar utility that adds **minimize, fit/restore, and close** controls to the right of supported windows. Original left-side controls remain in place. Occupied or uncertain layouts are rejected.
 
-**Developer preview, not a universal window-control replacement.** Preview 3 evaluates all identified normal applications automatically, without an app-name allowlist. It prefers the rightmost verified anchor, trying a 102 pt strip then 66 pt compact controls before moving left. TextEdit, Safari, Finder and Preview have passed disposable-window action tests. Other apps, including Blender, are eligible but not thereby verified. Crowded or incomplete layouts stay hidden. Normal action flows have passed in Safari and Finder; broad beta still requires pointer/composite, edge-case and installation validation. See [compatibility](docs/compatibility.md) and [validation](docs/validation.md).
+**Developer preview, not a universal window-control replacement.** Preview 3 evaluates all identified normal applications automatically, without an app-name allowlist. It prefers the rightmost verified anchor, trying a 102 pt strip then 66 pt compact controls before moving left. TextEdit, Safari, Finder and Preview have passed disposable-window action tests. Other apps, including Blender, are eligible but not thereby verified. Crowded or incomplete titlebars use a small shelf outside the window only when that desktop space is clear; otherwise controls stay hidden. Screen-filling windows may have no outside space. Normal action flows have passed in Safari and Finder; broad beta still requires pointer/composite, edge-case and installation validation. See [compatibility](docs/compatibility.md) and [validation](docs/validation.md).
 
 ## Use
 

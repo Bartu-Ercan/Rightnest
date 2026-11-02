@@ -45,3 +45,7 @@ Fit/restore waits for shrink before movement, permits only 0–8 pt native fit m
 Remove the three-name eligibility gate; retain every geometry, AX action, target identity and occlusion check. Identified regular apps are considered automatically; the app itself, background agents and user exclusions are rejected before AX inspection. This is discovery, not a new universal compatibility guarantee. Settings show running apps plus known names and persisted exclusions. Legacy external-control preference storage remains for migration.
 
 Prefer the existing 102×26 pt strip, then 66×26 pt with 22 pt buttons; never shrink below the chosen pointer-size floor. Reuse the same NSButtons and native resizing. Hidden/unsupported layouts retry on a three-second fallback while focus/window notifications bypass the delay; visible overlays retain one-second rechecks. Hover uses semantic yellow/green/red fills with dark labeled symbols, no scaling/motion, and clears on hide/disable/exit. No runtime dependencies were added.
+
+## Popular apps and outside shelf
+
+User accepted an external shelf on 2026-11-02 when titlebar geometry cannot be verified. Desktop geometry and on-screen surfaces constrain it; no automatic resizing or content overlay. See design-popular-apps.md. Content/title notifications now revalidate without hiding, while geometry/target changes still hide immediately. Native Chromium trailing-tab-strip recognition is structural and narrow; arbitrary empty groups remain rejected.

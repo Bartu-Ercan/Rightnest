@@ -7,6 +7,16 @@ func L(_ english: String) -> String {
     return turkish ? translations[message] ?? message : message
 }
 private let translations: [String: String] = [
+    "Overview": "Genel bakış", "On your Mac. Only.": "Yalnızca Mac’inizde.",
+    "Choose where Rightnest lends a hand.": "Rightnest’un çalışacağı uygulamaları seçin.",
+    "Rightnest is running": "Rightnest çalışıyor", "Everyday use": "Günlük kullanım",
+    "Room for your habits.": "Alışkanlıklarınıza yer var.",
+    "Original controls stay. Rightnest finds a clear corner, or uses free space just outside the window.": "Özgün kontroller kalır. Rightnest boş bir köşe bulur veya pencerenin hemen dışındaki boş alanı kullanır.",
+    "A test window, with nothing to lose.": "Güvenle deneyebileceğiniz bir pencere.",
+    "Search applications": "Uygulamalarda ara", "No matching applications": "Eşleşen uygulama yok",
+    "Listed apps are eligible, not a compatibility guarantee. Crowded or uncertain windows may hide controls.": "Listede yer almak uyumluluk garantisi değildir. Dolu veya belirsiz pencerelerde kontroller gizlenebilir.",
+    "Controls outside window": "Kontroller pencerenin dışında",
+    "No safe titlebar or outside space": "Başlık çubuğunda veya pencerenin dışında güvenli boşluk yok",
     "Rightnest Settings": "Rightnest Ayarları",
     "Automatically place controls in other apps": "Diğer uygulamalarda kontrolleri otomatik yerleştir",
     "New apps are checked automatically. Controls stay hidden when the window cannot be verified.": "Yeni uygulamalar otomatik kontrol edilir. Pencere doğrulanamazsa kontroller gizlenir.",

@@ -21,6 +21,19 @@ public enum Placement {
         }.sorted { $0.maxX == $1.maxX ? $0.width > $1.width : $0.maxX > $1.maxX }
     }
 
+    /// Prefer above the upper-right corner, then beside or below. Never enter
+    /// the menu bar, Dock, another display, or the target window itself.
+    public static func detachedCandidates(window: CGRect, visibleFrames: [CGRect]) -> [CGRect] {
+        guard WindowGeometry.valid(window), let screen = WindowGeometry.screen(for: window, visibleFrames: visibleFrames) else { return [] }
+        return [width, 66].flatMap { w in
+            [CGRect(x: window.maxX-w, y: window.minY-height-6, width: w, height: height),
+             CGRect(x: window.maxX+6, y: window.minY+6, width: w, height: height),
+             CGRect(x: window.maxX-w, y: window.maxY+6, width: w, height: height),
+             CGRect(x: window.minX-w-6, y: window.minY+6, width: w, height: height)]
+                .filter { screen.contains($0) && !$0.intersects(window) }
+        }
+    }
+
     // All rectangles use AX screen coordinates (origin at the main screen's top left).
     // Caller must supply complete, trustworthy obstacle data; empty AX data is not proof of safety.
     public static func candidate(window: CGRect, rowY: CGFloat, obstacles: [CGRect],

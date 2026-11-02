@@ -37,4 +37,19 @@ final class WindowGeometryTests: XCTestCase {
         XCTAssertFalse(ApplicationEligibility.allows(bundleID: "agent", isRegular: false, ownBundleID: "self", disabled: []))
         XCTAssertFalse(ApplicationEligibility.allows(bundleID: nil, isRegular: true, ownBundleID: "self", disabled: []))
     }
+    func testDetachedControlsRespectUsableDesktop() {
+        let screen = CGRect(x: -1440, y: 30, width: 1440, height: 870)
+        let window = CGRect(x: -1300, y: 150, width: 900, height: 600)
+        let choices = Placement.detachedCandidates(window: window, visibleFrames: [screen])
+        XCTAssertFalse(choices.isEmpty)
+        XCTAssertTrue(choices.allSatisfy { screen.contains($0) && !$0.intersects(window) })
+        XCTAssertTrue(Placement.detachedCandidates(window: screen, visibleFrames: [screen]).isEmpty)
+    }
+    func testOutsideOverlayCannotMaskAnotherWindow() {
+        let rect = CGRect(x: 200, y: 40, width: 102, height: 26)
+        let panel = Surface(number: 1, pid: 10, layer: 3, bounds: rect, alpha: 1)
+        let other = Surface(number: 2, pid: 20, layer: 0, bounds: rect, alpha: 1)
+        XCTAssertTrue(SurfaceOrder.outsideIsClear([panel], candidate: rect, overlayNumber: 1, ownPID: 10))
+        XCTAssertFalse(SurfaceOrder.outsideIsClear([panel, other], candidate: rect, overlayNumber: 1, ownPID: 10))
+    }
 }
