@@ -13,7 +13,7 @@
 - Two additional daily-use apps. Current background/foreground audits reject Finder, Safari, Chrome and Preview; see compatibility.md.
 - Clean-user downloaded installation, Gatekeeper experience, update permission continuity for distributed packages, login-item registration.
 - One-hour soak, idle CPU target below 1%, stable RSS; older OS/device coverage.
-- XCTest requires full Xcode, unavailable on this host. CI workflow is configured but not yet run remotely.
+- XCTest requires full Xcode, unavailable on this host. Remote CI passed: https://github.com/Bartu-Ercan/Rightnest/actions/runs/41454033532 (9 XCTest cases, 34 standalone checks, arm64 release and artifact validation).
 
 The app remains a developer preview. Historical full-screen prototype tests are archived in prototype-investigation.md and do not validate the new fit behavior.
 
@@ -28,3 +28,5 @@ The app remains a developer preview. Historical full-screen prototype tests are 
 ## Packaged artifact verified
 
 `dist/Rightnest-0.1.0-preview-arm64.dmg` was produced after the fixes. DMG checksum verification passed. The image was mounted read-only with nobrowse, its app passed strict codesign verification and arm64 architecture verification, AppIcon.icns and Applications symlink were present, and the image was ejected. No app was launched. This validates package structure and local signature, not Gatekeeper acceptance or clean-user installation.
+
+Source repository: https://github.com/Bartu-Ercan/Rightnest. No public app release has been published.

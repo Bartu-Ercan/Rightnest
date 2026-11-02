@@ -17,6 +17,6 @@ Actor-owned serial AX client, MainActor notification subscriptions and nonactiva
 2. On an actually isolated GUI environment: physical pointer/composite verification, origin-varied fit/restore regression, focus/occlusion/sheets/drag/Spaces tests. Another Space alone is not isolation.
 3. Improve app-specific titlebar traversal without assuming containers are blank; verify two additional daily apps before broad beta.
 4. One-hour soak, CPU/RSS, clean-account downloaded installation/update/removal, older macOS and accessibility visual validation.
-5. Run GitHub CI after source publication review. No public app release before stated gates.
+5. Source published at https://github.com/Bartu-Ercan/Rightnest. CI run 41454033532 passed (9 XCTest cases and 34 standalone checks plus release validation). No public app release before stated gates.
 
 Shared reference repositories live under ~/.codex/skill-sources. Eleven avenox skills installed globally; next-turn discovery required. sifirdan is learning material, not an installable SKILL package. Its evidence/provenance and continuity ideas are reflected here and in global guidance. No chat export, nightly job or cloud sync was installed.
