@@ -38,3 +38,5 @@ After action-state confirmation was added, `.build/verification-today/result.jso
 Computer Use coordinate clicks on the own demo verified fit, return to original size and close. Captures showed the right strip clearly, but this does not prove the external overlay's composite appearance. The menu-bar completion preference persisted; the Computer Use tool reopens the app's settings on subsequent activation, so its snapshot alone cannot prove absence of a welcome window at normal startup.
 
 The limited preview is intended for informed testers; broad beta gates remain open. No clean-account or long-duration claim is made.
+
+Short passive sample on macOS 27.0: 60.01 seconds, 31 samples, mean CPU 0.283% of one core, RSS 20,832 → 19,136 KiB. This is a short background sample, not the planned one-hour soak or an active-overlay benchmark. Packaged Gatekeeper assessment rejects the self-signed app (origin: Starboard Local Development); no bypass was performed. Preview notes explicitly disclose the lack of Developer ID/notarization.
