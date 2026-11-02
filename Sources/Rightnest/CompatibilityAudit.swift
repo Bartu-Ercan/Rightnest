@@ -12,7 +12,7 @@ enum CompatibilityAudit {
         var previous: [String: String] = [:]
         while !Task.isCancelled {
             for app in NSWorkspace.shared.runningApplications {
-                guard let id = app.bundleIdentifier, AppModel.candidates.contains(where: { $0.0 == id }) else { continue }
+                guard let id = app.bundleIdentifier, app.activationPolicy == .regular, id != Bundle.main.bundleIdentifier else { continue }
                 let result = await engine.inspect(pid: app.processIdentifier, overlayNumber: nil, requireFocus: false)
                 let frame = result.snapshot.map { NSStringFromRect($0.frame) } ?? "unavailable"
                 let key = id + result.reason + frame

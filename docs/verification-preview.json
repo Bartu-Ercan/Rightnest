@@ -1,0 +1,21 @@
+{
+  "actionTrace" : "action close\nsnapshot {{80, 90}, {1760, 700}}",
+  "close" : "passed",
+  "document" : "disposable fixture verified by AXDocument or AXWebArea URL",
+  "expectedFit" : "{{0, 30}, {1920, 992}}",
+  "fit" : "passed",
+  "frontApplication" : "com.apple.Preview",
+  "lastActionResult" : "Window action sent",
+  "lastAppStatus" : "Window action sent",
+  "lastPlacementIssue" : "Unverified title bar",
+  "layout" : "window {{80, 90}, {1760, 700}} close {{98, 108}, {16, 16}} search {{974, 103}, {858, 26}}\nAXButton {{1049, 94}, {48, 46}}\nAXButton {{1087, 94}, {46, 46}}\nAXButton {{1123, 94}, {49, 46}}\nAXRadioGroup {{1167, 92}, {86, 48}}\nAXButton {{1250, 85}, {50, 62}}\nAXRadioButton {{1290, 85}, {46, 62}}\nAXCheckBox {{1326, 85}, {57, 62}}\nAXCheckBox {{1373, 85}, {50, 62}}\nAXCheckBox {{1421, 85}, {46, 62}}\nAXButton {{1457, 85}, {51, 62}}\nAXTextField {{1501, 92}, {337, 48}}",
+  "minimize" : "passed",
+  "minimizeDispatchStatus" : "Checking target window…",
+  "minimizePlacementIssue" : "Unverified title bar",
+  "originalFrame" : "{{80, 90}, {1760, 700}}",
+  "panel" : "visible",
+  "permission" : "granted",
+  "restore" : "passed",
+  "restoreFrame" : "passed",
+  "result" : "passed"
+}

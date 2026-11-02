@@ -26,10 +26,10 @@ struct MenuContent: View {
         Text(model.status)
         Divider()
         Menu(L("Applications")) {
-            ForEach(AppModel.candidates, id: \.0) { item in
+            ForEach(model.availableApplications, id: \.0) { item in
                 Toggle(item.1, isOn: Binding(get: { !model.disabledApplications.contains(item.0) }, set: {
-                    if $0 { model.disabledApplications.remove(item.0) } else { model.disabledApplications.insert(item.0) }
-                })).disabled(!AppModel.verifiedApplications.contains(item.0))
+                    model.setApplication(item.0, enabled: $0)
+                }))
             }
         }
         Button(L("Open Test Window")) { model.openDemo() }
@@ -64,12 +64,18 @@ struct WelcomeView: View {
                 Button(L("Open Test Window")) { model.openDemo() }
             }
             if model.trusted {
-                Toggle(L("Enable external controls (TextEdit, Safari and Finder preview)"), isOn: $model.textEditEnabled).font(.callout)
+                Toggle(L("Automatically place controls in other apps"), isOn: $model.textEditEnabled).font(.callout)
             }
             VStack(alignment: .leading, spacing: 9) {
                 Toggle(L("Launch at login"), isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) }))
                 if !model.loginMessage.isEmpty { Text(model.loginMessage).font(.caption).foregroundStyle(.secondary) }
-                Text(L("Other applications are being evaluated. Unsupported layouts remain hidden.")).font(.caption).foregroundStyle(.secondary)
+                DisclosureGroup(L("Applications")) {
+                    ForEach(model.availableApplications, id: \.0) { item in
+                        Toggle(item.1, isOn: Binding(get: { !model.disabledApplications.contains(item.0) },
+                            set: { model.setApplication(item.0, enabled: $0) }))
+                    }
+                }
+                Text(L("New apps are checked automatically. Controls stay hidden when the window cannot be verified.")).font(.caption).foregroundStyle(.secondary)
                 if !model.onboardingComplete {
                     Button(L("Continue in menu bar")) { model.finishSetup() }.buttonStyle(.borderedProminent)
                 }

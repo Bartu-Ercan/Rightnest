@@ -2,7 +2,7 @@
 
 Native macOS menu-bar utility that adds **minimize, fit/restore, and close** controls to the right of supported windows. Original left-side controls remain in place. Occupied or uncertain layouts are rejected.
 
-**Developer preview, not a universal window-control replacement.** TextEdit, Safari and Finder are enabled in Preview 2 when the right half of the titlebar has verifiable free space. Narrow windows may intentionally show no controls. Chrome and Preview remain disabled. Normal action flows have passed in Safari and Finder; broad beta still requires pointer/composite, edge-case and installation validation. See [compatibility](docs/compatibility.md) and [validation](docs/validation.md).
+**Developer preview, not a universal window-control replacement.** Preview 3 evaluates all identified normal applications automatically, without an app-name allowlist. It prefers the rightmost verified anchor, trying a 102 pt strip then 66 pt compact controls before moving left. TextEdit, Safari, Finder and Preview have passed disposable-window action tests. Other apps, including Blender, are eligible but not thereby verified. Crowded or incomplete layouts stay hidden. Normal action flows have passed in Safari and Finder; broad beta still requires pointer/composite, edge-case and installation validation. See [compatibility](docs/compatibility.md) and [validation](docs/validation.md).
 
 ## Use
 
@@ -14,7 +14,7 @@ Native macOS menu-bar utility that adds **minimize, fit/restore, and close** con
 
 The middle button fits the window into its display's usable area, leaving the Dock/menu bar visible. Press again to restore its previous frame. Manual resizing invalidates that restore record; records are kept only during the current session. Close means close the window, not quit the application. Save prompts belong to the target application.
 
-English and Turkish follow the system language. Launch at login is off by default. No account, network service, telemetry, screenshots, screen-recording permission or process injection.
+Minimize/fit/close hover fills are system yellow/green/red, with contrasting dark symbols. App exclusions are available in the menu and Settings, including newly running apps. English and Turkish follow the system language. Launch at login is off by default. No account, network service, telemetry, screenshots, screen-recording permission or process injection.
 
 ## Download and installation
 
@@ -28,6 +28,7 @@ Apple Silicon Mac, Swift 6.0+ and a macOS SDK are required. The API deployment t
 
 ```sh
 swift run PlacementChecks
+./script/check_hover.sh          # offscreen AppKit hover/layout checks
 swift test                       # full Xcode environment
 ./script/build_and_run.sh         # debug build, install in ~/Applications, launch
 ./script/build_and_run.sh --build # build only, does not stop the running app
@@ -58,7 +59,7 @@ The following is debug-only and controls **only a disposable fixture matched by 
 open -n "$HOME/Applications/Rightnest.app" --args --verify-textedit "$PWD/.build/verification"
 ```
 
-The JSON report is written under that directory. It exercises real proxy NSButtons with `performClick`; this does not prove physical mouse hit testing or composite appearance. `--audit-compatibility <directory>` is a separate debug-only, read-only geometry audit of the five candidate apps. It records no titles, document paths or content. Both entrypoints are excluded from release binaries.
+The JSON report is written under that directory. It exercises real proxy NSButtons with `performClick`; this does not prove physical mouse hit testing or composite appearance. `--audit-compatibility <directory>` is a separate debug-only, read-only geometry audit of running normal apps. It records no titles, document paths or content. `--verify-app <report-directory> <bundle-id> <fixture-path>` reuses the fixture verifier for an explicitly prepared disposable window in another app. All developer entrypoints are excluded from release binaries.
 
 ## Contribute
 

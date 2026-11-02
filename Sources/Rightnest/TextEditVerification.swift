@@ -94,7 +94,7 @@ enum TextEditVerification {
                     try await Task.sleep(for: .milliseconds(500))
                     _ = client.setPosition(CGPoint(x: 80, y: 90), on: window)
                     try await Task.sleep(for: .milliseconds(200))
-                    let fixtureWidth: CGFloat = applicationID == "com.apple.finder" ? 1760 : 1469
+                    let fixtureWidth: CGFloat = min(1760, (NSScreen.main?.visibleFrame.width ?? 1920) - 160)
                     _ = client.setSize(CGSize(width: fixtureWidth, height: 700), on: window)
                     try await wait("Safari fixture did not accept normal starting size") {
                         guard let rect = client.frame(window) else { return false }

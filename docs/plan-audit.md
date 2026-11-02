@@ -10,7 +10,7 @@ The original plan is **not complete**. A limited downloadable TextEdit preview e
 | Event-driven updates and bounded serial AX queries | Implemented | Notifications plus one-second fallback, actor isolation, deadlines and stale-result cancellation. Flicker/energy under active use remains to validate. |
 | Multiple displays, disconnect/restore, Spaces | Partial | Pure coordinate/restore checks; device/display-transition tests pending. |
 | Focus/permission/window identity revalidation | Implemented, partial test coverage | Focus changes cancel integration runs. Systematic race/dialog coverage pending. |
-| Daily apps: TextEdit, Preview, Finder, Safari, Chrome | Partial | TextEdit, Safari and Finder basic action fixtures pass in Preview 2 source. Chrome and Preview remain disabled. |
+| Daily apps: TextEdit, Preview, Finder, Safari, Chrome | Partial | Preview 3 removes the name allowlist. TextEdit, Safari, Finder and Preview basic action fixtures have passed; Chrome and Blender remain unverified despite automatic eligibility. |
 | TextEdit plus two daily apps before broad beta | Basic-flow threshold met | Safari and Finder action fixtures passed. Other visual/interaction/install/soak gates remain; this alone does not authorize a broad beta label. |
 | Permission-first onboarding and menu-bar lifecycle | Implemented, partial validation | Live permission and UI states observed; clean-user journey and regular launch restoration need dedicated validation. |
 | Per-app exclusions and optional login startup | Implemented | SMAppService code exists; actual register/unregister needs isolated user test. |
@@ -24,3 +24,5 @@ The original plan is **not complete**. A limited downloadable TextEdit preview e
 | Complete product / stable release | Not met | Compatibility and user-flow gates above must close first. |
 
 No automatic memory export, cloud sync, telemetry, account/backend or paid signing membership was added. Decisions and actual evidence remain in this repository.
+
+Additional user request: automatic evaluation of new apps, compact verified placement and yellow/green/red hover implemented in Preview 3 source. App-level exclusions remain available. This is not a universal-compatibility claim. See design-automatic-controls.md and current STATUS.md for release/CI evidence.

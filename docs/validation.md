@@ -50,3 +50,9 @@ Safari and Finder disposable-window action reports passed: verification-safari.j
 Earlier failed attempts revealed: shared active Safari focus, missing window-level AXDocument (resolved using the exact fixture WebArea URL), geometry writes clamped during native tiling, and a broad static-text label rectangle. Fixes use known complete background nodes, actual text character bounds, bounded phased writes and settled final geometry. Unknown empty groups remain rejected. Full original-plan audit: plan-audit.md.
 
 Preview 2 source CI 41463347790 passed (11 XCTest cases, 41 standalone checks and arm64 release verification). Final Finder regression after numeric/text-bounds validation passed and replaced verification-finder.json. Build-3 DMG was mounted read-only; strict signature and arm64 checks passed. Published Preview 2 download was re-downloaded and its SHA-256 matched.
+
+## Automatic placement / hover development
+
+49 standalone checks and 24 offscreen AppKit button/appearance/width combinations passed. Native checks cover resolved fill/symbol contrast >=3:1, labels, minimum hit size, containment, disabled and exit states across light/dark/high-contrast themes. These are component checks, not real pointer/composite verification.
+
+Preview, previously outside the runtime allowlist, was automatically evaluated. Its crowded ordinary strip was rejected; the shared compact strip passed the complete disposable-PDF action sequence (verification-preview.json). TextEdit regression passed after hidden-window backoff. Command-Comma settings opening, dynamic application listing and Preview exclusion toggle/restore were observed through Computer Use. Blender is not installed and was not tested. Other unverified app names must not be promoted to verified merely because automatic eligibility is enabled.

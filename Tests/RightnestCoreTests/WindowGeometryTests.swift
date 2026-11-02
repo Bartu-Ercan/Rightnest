@@ -28,5 +28,13 @@ final class WindowGeometryTests: XCTestCase {
         let candidates = Placement.candidates(window: window, rowY: 44)
         XCTAssertEqual(candidates.first, Placement.candidate(window: window, rowY: 44, obstacles: [], boundsKnown: true))
         XCTAssertTrue(candidates.allSatisfy { $0.minX >= window.midX && window.contains($0) })
+        XCTAssertTrue(candidates.contains { $0.width == 66 })
+    }
+    func testAutomaticApplicationEligibilityAndExclusions() {
+        XCTAssertTrue(ApplicationEligibility.allows(bundleID: "org.blenderfoundation.blender", isRegular: true, ownBundleID: "self", disabled: []))
+        XCTAssertFalse(ApplicationEligibility.allows(bundleID: "org.blenderfoundation.blender", isRegular: true, ownBundleID: "self", disabled: ["org.blenderfoundation.blender"]))
+        XCTAssertFalse(ApplicationEligibility.allows(bundleID: "self", isRegular: true, ownBundleID: "self", disabled: []))
+        XCTAssertFalse(ApplicationEligibility.allows(bundleID: "agent", isRegular: false, ownBundleID: "self", disabled: []))
+        XCTAssertFalse(ApplicationEligibility.allows(bundleID: nil, isRegular: true, ownBundleID: "self", disabled: []))
     }
 }

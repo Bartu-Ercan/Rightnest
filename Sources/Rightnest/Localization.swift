@@ -7,6 +7,10 @@ func L(_ english: String) -> String {
     return turkish ? translations[message] ?? message : message
 }
 private let translations: [String: String] = [
+    "Rightnest Settings": "Rightnest Ayarları",
+    "Automatically place controls in other apps": "Diğer uygulamalarda kontrolleri otomatik yerleştir",
+    "New apps are checked automatically. Controls stay hidden when the window cannot be verified.": "Yeni uygulamalar otomatik kontrol edilir. Pencere doğrulanamazsa kontroller gizlenir.",
+    "All apps are checked automatically. Occupied or uncertain title bars keep controls hidden.": "Tüm uygulamalar otomatik kontrol edilir. Dolu veya belirsiz başlık çubuklarında kontroller gizlenir.",
     "Minimize window": "Pencereyi küçült", "Fit or restore window": "Ekrana sığdır veya geri yükle",
     "Close window": "Pencereyi kapat", "Restore window": "Pencereyi geri yükle", "Fit window to screen": "Pencereyi ekrana sığdır",
     "Window layout could not be verified": "Pencere düzeni doğrulanamadı",

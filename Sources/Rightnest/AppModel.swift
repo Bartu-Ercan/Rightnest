@@ -30,6 +30,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     private let observer = WindowObserver()
     private var inspectionTask: Task<Void, Never>?
     private var generation: UInt64 = 0
+    private var lastInspection = Date.distantPast
     private var extraObservers: [NSObjectProtocol] = []
     private var welcome: NSWindow?
     private var demoOriginal: CGRect?
@@ -42,8 +43,20 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     }
     static let candidates = [("com.apple.TextEdit", "TextEdit"), ("com.apple.Preview", "Preview"),
         ("com.apple.finder", "Finder"), ("com.apple.Safari", "Safari"), ("com.google.Chrome", "Chrome")]
-    // Candidates are not support claims. Broader support stays off until verified.
-    static let verifiedApplications: Set<String> = ["com.apple.TextEdit", "com.apple.Safari", "com.apple.finder"]
+    // Recorded test coverage, not an eligibility allowlist.
+    var availableApplications: [(String, String)] {
+        var names = Dictionary(uniqueKeysWithValues: Self.candidates)
+        for app in NSWorkspace.shared.runningApplications where app.activationPolicy == .regular {
+            if let id = app.bundleIdentifier, id != Bundle.main.bundleIdentifier {
+                names[id] = app.localizedName ?? id
+            }
+        }
+        for id in disabledApplications where names[id] == nil { names[id] = id }
+        return names.map { ($0.key, $0.value) }.sorted { $0.1.localizedStandardCompare($1.1) == .orderedAscending }
+    }
+    func setApplication(_ id: String, enabled: Bool) {
+        if enabled { disabledApplications.remove(id) } else { disabledApplications.insert(id) }
+    }
     func setLaunchAtLogin(_ enabled: Bool) {
         do {
             if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
@@ -59,8 +72,8 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     func showSettings() {
         if let welcome { welcome.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); return }
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 580, height: 680),
-            styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
-        window.title = "Rightnest"; window.isReleasedWhenClosed = false
+            styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        window.title = L("Rightnest Settings"); window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(rootView: WelcomeView(model: self))
         window.center(); welcome = window
         window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
@@ -81,7 +94,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
 
     private var isVerificationRun: Bool {
         #if DEBUG
-        CommandLine.arguments.contains("--audit-compatibility") || CommandLine.arguments.contains("--verify-textedit") || (CommandLine.arguments.contains("--verify-safari") || CommandLine.arguments.contains("--verify-finder"))
+        CommandLine.arguments.contains("--verify-app") || CommandLine.arguments.contains("--audit-compatibility") || CommandLine.arguments.contains("--verify-textedit") || (CommandLine.arguments.contains("--verify-safari") || CommandLine.arguments.contains("--verify-finder"))
         #else
         false
         #endif
@@ -110,6 +123,12 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
         if let index = CommandLine.arguments.firstIndex(of: "--audit-compatibility"), CommandLine.arguments.indices.contains(index + 1) {
             let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
             Task { await CompatibilityAudit.run(directory: directory) }
+        }
+        if let index = CommandLine.arguments.firstIndex(of: "--verify-app"), CommandLine.arguments.indices.contains(index + 3) {
+            let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
+            let appID = CommandLine.arguments[index + 2]
+            let fixture = URL(fileURLWithPath: CommandLine.arguments[index + 3])
+            Task { await TextEditVerification.run(model: self, directory: directory, browserFixture: fixture, fixtureApplicationID: appID) }
         }
         if let index = CommandLine.arguments.firstIndex(of: "--verify-finder"), CommandLine.arguments.indices.contains(index + 2) {
             let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
@@ -220,7 +239,8 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
         guard enabled, trusted, textEditEnabled,
               let front = NSWorkspace.shared.frontmostApplication,
               let bundle = front.bundleIdentifier,
-              Self.verifiedApplications.contains(bundle), !disabledApplications.contains(bundle) else {
+              ApplicationEligibility.allows(bundleID: bundle, isRegular: front.activationPolicy == .regular,
+                  ownBundleID: Bundle.main.bundleIdentifier ?? "dev.bartuercan.starboard", disabled: disabledApplications) else {
             panel.orderOut(nil); observer.watch(pid: nil)
             inspectionTask?.cancel(); inspectionTask = nil
             actionTask?.cancel(); actionTask = nil
@@ -230,6 +250,9 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
             return
         }
         guard actionTask == nil, inspectionTask == nil else { return }
+        // ponytail: one bounded fallback interval; AX notifications bypass it.
+        if !settling && !panel.isVisible && Date().timeIntervalSince(lastInspection) < 3 { return }
+        lastInspection = Date()
         observer.watch(pid: front.processIdentifier)
         let revision = generation, pid = front.processIdentifier
         let overlayNumber = panel.isVisible ? panel.windowNumber : nil

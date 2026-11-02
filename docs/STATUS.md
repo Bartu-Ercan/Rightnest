@@ -3,6 +3,14 @@
 Product: Rightnest, formerly Starboard. Root: ~/Desktop/vibecoding/Rightnest.
 User choices: extra right-side controls, originals retained, hide on uncertainty; minimize / fit-restore / close; Apple Silicon; MIT; no paid Developer ID membership; logo A Corner selected. User is studying: do not open or focus test windows on their desktop.
 
+## Active work — automatic app discovery and hover colors
+
+User requested: remove app-name restrictions; automatically find verified right-titlebar gaps in new apps (Blender was an example); preserve per-app opt-out; yellow minimize, green fit and red close hover; use apple-design and ponytail; leave reliable resume notes if quota interrupts work.
+
+Current implementation: AppModel eligibility now uses regular-app capability discovery rather than the three-app allowlist. The existing strict AX geometry, text bounds, occlusion and action revalidation remain. Running apps and persisted exclusions are available in menu/settings. Shared buttons use semantic filled hover colors and dark symbols, with labels/shapes retained. No new runtime dependency.
+
+Evidence: 49 standalone checks and 24 offscreen native hover/layout combinations passed. Previously unlisted Preview passed its full disposable-PDF action test using compact controls (docs/verification-preview.json). TextEdit regression also passed after backoff was added. Command-Comma, dynamic settings list and exclusion toggle/restore were checked through Computer Use. Rightmost anchor is preferred before moving left; each anchor tries normal then compact width. Next: release packaging and CI; then update this checkpoint with the new release URL and final run ID. Blender is not installed; do not claim Blender verified. Preview 2 remains the published release until this change is verified/published.
+
 ## Current evidence
 - Preview 2 published: https://github.com/Bartu-Ercan/Rightnest/releases/tag/v0.1.0-preview.2. TextEdit/Safari/Finder enabled when space is verified. Source CI 41463347790 passed: 11 XCTest cases and 41 standalone checks. Full plan audit: docs/plan-audit.md.
 - `swift run PlacementChecks`: 41 checks pass.

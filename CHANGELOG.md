@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0 Preview 3 — automatic discovery
+
+- Evaluate all identified regular apps without a name allowlist; retain strict window capability/geometry checks and opt-outs.
+- Add compact 66 pt placement with 22×26 pt buttons; Preview's disposable PDF action test now passes.
+- Add semantic yellow/green/red hover fills, contrasting symbols and reset on hide/disable/exit.
+- Add dynamic application choices to Settings and menu; bound retry frequency on hidden layouts.
+- Add native offscreen hover/layout checks and eligibility regressions. Blender remains unverified.
+
 ## 0.1.0 Preview 2 — 2026-11-02
 
 - Add limited Safari and Finder support after disposable-window action verification.
