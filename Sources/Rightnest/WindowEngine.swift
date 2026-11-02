@@ -21,6 +21,7 @@ actor WindowEngine {
     private let client = AccessibilityClient()
     private var target: WindowTarget?
     private var token: UInt64 = 0
+    private var lastSnapshot: WindowSnapshot?
     #if DEBUG
     private var trace: [String] = []
     func verificationTrace() -> [String] { trace }
@@ -34,21 +35,27 @@ actor WindowEngine {
     private var saved: [Saved] = []
 
     func inspect(pid: pid_t, overlayNumber: Int?, requireFocus: Bool = true, screens: [CGRect] = []) -> Inspection {
-        guard AXIsProcessTrusted(), (!requireFocus || client.focusedPID() == pid) else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
+        guard !Task.isCancelled, AXIsProcessTrusted(), (!requireFocus || client.focusedPID() == pid) else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
         guard let next = client.target(pid: pid) else { return Inspection(snapshot: nil, reason: "Unsupported window state") }
         if let old = target {
             if old.pid != pid || !CFEqual(old.window, next.window) { token &+= 1 }
         } else { token &+= 1 }
         target = next
         saved.removeAll { $0.pid == pid && CFEqual($0.window, next.window) && !WindowGeometry.close($0.record.fitted, next.frame) }
-        guard let rect = client.placement(next, overlayNumber: overlayNumber, screens: screens) else { return Inspection(snapshot: nil, reason: client.placementIssue) }
+        let preferred: CGRect?
+        if let lastSnapshot, lastSnapshot.token == token, lastSnapshot.pid == pid,
+           WindowGeometry.close(lastSnapshot.frame, next.frame) { preferred = lastSnapshot.placement }
+        else { preferred = nil }
+        guard let rect = client.placement(next, overlayNumber: overlayNumber, screens: screens, preferred: preferred) else { return Inspection(snapshot: nil, reason: client.placementIssue) }
         var actions: Set<WindowAction> = []
         if next.close != nil { actions.insert(.close) }
         if next.minimize != nil { actions.insert(.minimize) }
         if next.resizable { actions.insert(.fit) }
         guard !actions.isEmpty else { return Inspection(snapshot: nil, reason: "No supported window actions") }
-        return Inspection(snapshot: WindowSnapshot(token: token, pid: pid, frame: next.frame, placement: rect, actions: actions,
-            restoring: saved.contains { $0.pid == pid && CFEqual($0.window, next.window) }), reason: "Controls active")
+        let snapshot = WindowSnapshot(token: token, pid: pid, frame: next.frame, placement: rect, actions: actions,
+            restoring: saved.contains { $0.pid == pid && CFEqual($0.window, next.window) })
+        lastSnapshot = snapshot
+        return Inspection(snapshot: snapshot, reason: "Controls active")
     }
 
     func perform(_ action: WindowAction, snapshot: WindowSnapshot, screens: [CGRect]) async -> String {
@@ -65,7 +72,7 @@ actor WindowEngine {
             guard !Task.isCancelled, token == snapshot.token, AXIsProcessTrusted(), client.focusedPID() == snapshot.pid,
                   let focused = client.focusedWindow(pid: snapshot.pid), CFEqual(focused, current.window),
                   let frame = client.frame(current.window), WindowGeometry.close(frame, snapshot.frame) else { return "Window action cancelled: target changed" }
-            if client.placement(current, screens: screens) == snapshot.placement { clear = true; break }
+            if client.placement(current, screens: screens, preferred: snapshot.placement) == snapshot.placement { clear = true; break }
             guard client.ownPanelOcclusion || client.placementIssue == "Inspection timed out" || client.placementIssue == "Inspection limit reached" else { return client.placementIssue }
             do { try await Task.sleep(for: .milliseconds(50)) } catch { return "Window action cancelled" }
         }
@@ -93,7 +100,6 @@ actor WindowEngine {
         let destination: CGRect
         if let index { destination = saved[index].record.destination(current: current.frame, screens: screens) ?? screen }
         else { destination = screen }
-        if let index { saved.remove(at: index) }
         // Separate shrink, move and grow. Some applications clamp a size request
         // to the old origin until they have processed the position change.
         let smaller = CGSize(width: min(current.frame.width, destination.width), height: min(current.frame.height, destination.height))
@@ -102,8 +108,7 @@ actor WindowEngine {
             var shrunk = false
             for _ in 0..<20 {
                 do { try await Task.sleep(for: .milliseconds(50)) } catch { return "Window action cancelled" }
-                guard !Task.isCancelled, token == snapshot.token, AXIsProcessTrusted(), client.focusedPID() == current.pid,
-                      let focused = client.focusedWindow(pid: current.pid), CFEqual(focused, current.window) else { return "Window action cancelled: target changed" }
+                guard let focused = await verifiedWindow(window: current.window, pid: current.pid, revision: snapshot.token) else { return "Window action cancelled: target changed" }
                 if let rect = client.frame(focused), rect.width <= smaller.width+2, rect.height <= smaller.height+2 { shrunk = true; break }
             }
             guard shrunk else { return "Application limited the window size" }
@@ -111,20 +116,17 @@ actor WindowEngine {
         guard client.setPosition(destination.origin, on: current.window) else { return "Window resize was not accepted" }
         for _ in 0..<20 {
             do { try await Task.sleep(for: .milliseconds(50)) } catch { return "Window action cancelled" }
-            guard !Task.isCancelled, token == snapshot.token, AXIsProcessTrusted(), client.focusedPID() == current.pid,
-                  let focused = client.focusedWindow(pid: current.pid), CFEqual(focused, current.window) else { return "Window action cancelled: target changed" }
+            guard let focused = await verifiedWindow(window: current.window, pid: current.pid, revision: snapshot.token) else { return "Window action cancelled: target changed" }
             #if DEBUG
             trace.append("move: " + (client.frame(focused).map { NSStringFromRect($0) } ?? "missing"))
             #endif
             if let actual = client.frame(focused), abs(actual.minX-destination.minX) <= 2, abs(actual.minY-destination.minY) <= 2 { break }
         }
-        guard !Task.isCancelled, token == snapshot.token, AXIsProcessTrusted(), client.focusedPID() == current.pid,
-              let focused = client.focusedWindow(pid: current.pid), CFEqual(focused, current.window),
+        guard let focused = await verifiedWindow(window: current.window, pid: current.pid, revision: snapshot.token),
               client.setSize(destination.size, on: focused) else { return "Window resize was not accepted" }
         for attempt in 0..<20 {
             do { try await Task.sleep(for: .milliseconds(50)) } catch { return "Window action cancelled" }
-            guard !Task.isCancelled, token == snapshot.token, AXIsProcessTrusted(), client.focusedPID() == current.pid,
-                  let focused = client.focusedWindow(pid: current.pid), CFEqual(focused, current.window) else { return "Window action cancelled: target changed" }
+            guard let focused = await verifiedWindow(window: current.window, pid: current.pid, revision: snapshot.token) else { return "Window action cancelled: target changed" }
             #if DEBUG
             trace.append("size: " + (client.frame(focused).map { NSStringFromRect($0) } ?? "missing"))
             #endif
@@ -132,8 +134,7 @@ actor WindowEngine {
                !WindowGeometry.isFitted(actual, inside: destination) {
                 _ = client.setPosition(destination.origin, on: focused)
                 do { try await Task.sleep(for: .milliseconds(80)) } catch { return "Window action cancelled" }
-                guard !Task.isCancelled, token == snapshot.token, AXIsProcessTrusted(), client.focusedPID() == current.pid,
-                      let fresh = client.focusedWindow(pid: current.pid), CFEqual(fresh, current.window) else { return "Window action cancelled: target changed" }
+                guard let fresh = await verifiedWindow(window: current.window, pid: current.pid, revision: snapshot.token) else { return "Window action cancelled: target changed" }
                 _ = client.setSize(destination.size, on: fresh)
             }
             if attempt == 3, let actual = client.frame(focused),
@@ -146,6 +147,7 @@ actor WindowEngine {
             if let actual = client.frame(focused), (index == nil ? WindowGeometry.isFitted(actual, inside: destination) : WindowGeometry.close(actual, destination)) {
                 guard let settled = await settledFrame(window: current.window, pid: current.pid, revision: snapshot.token) else { return "Window action cancelled: target changed" }
                 guard index == nil ? WindowGeometry.isFitted(settled, inside: destination) : WindowGeometry.close(settled, destination) else { return "Application limited the window size" }
+                if let index { saved.remove(at: index) }
                 if index == nil {
                     if saved.count >= 32 { saved.removeFirst() }
                     saved.append(Saved(pid: current.pid, window: current.window, record: RestoreRecord(original: current.frame, fitted: settled)))
@@ -159,13 +161,47 @@ actor WindowEngine {
         }
         return "Application limited the window size"
     }
+    private func verifiedWindow(window: AXUIElement, pid: pid_t, revision: UInt64) async -> AXUIElement? {
+        // A missing reply is not a different target. Retry missing AX data briefly;
+        // a real focus/identity change still cancels before the next write.
+        for attempt in 0..<3 {
+            guard !Task.isCancelled, token == revision, AXIsProcessTrusted() else {
+                #if DEBUG
+                trace.append("target invalidated: cancelled=\(Task.isCancelled) revision=\(token == revision)")
+                #endif
+                return nil
+            }
+            if let focusedPID = client.focusedPID() {
+                guard focusedPID == pid else {
+                    #if DEBUG
+                    trace.append("focus changed to pid \(focusedPID)")
+                    #endif
+                    return nil
+                }
+                if let focused = client.focusedWindow(pid: pid) {
+                    guard CFEqual(focused, window) else {
+                        #if DEBUG
+                        trace.append("focused window identity changed")
+                        #endif
+                        return nil
+                    }
+                    return focused
+                }
+            }
+            if attempt < 2 { do { try await Task.sleep(for: .milliseconds(50)) } catch { return nil } }
+        }
+        #if DEBUG
+        trace.append("target AX data unavailable after bounded retries")
+        #endif
+        return nil
+    }
+
     private func settledFrame(window: AXUIElement, pid: pid_t, revision: UInt64) async -> CGRect? {
         var previous: CGRect?
         var stableSamples = 0
         for _ in 0..<12 {
             do { try await Task.sleep(for: .milliseconds(80)) } catch { return nil }
-            guard !Task.isCancelled, token == revision, AXIsProcessTrusted(), client.focusedPID() == pid,
-                  let focused = client.focusedWindow(pid: pid), CFEqual(focused, window), let rect = client.frame(window) else { return nil }
+            guard let focused = await verifiedWindow(window: window, pid: pid, revision: revision), let rect = client.frame(focused) else { return nil }
             if let previous, WindowGeometry.close(rect, previous, tolerance: 0.5) { stableSamples += 1 } else { stableSamples = 0 }
             previous = rect
             if stableSamples >= 3 { return rect }

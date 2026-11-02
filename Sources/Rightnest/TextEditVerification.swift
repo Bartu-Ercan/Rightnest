@@ -23,7 +23,7 @@ enum TextEditVerification {
         }
         if finderFixture, fixture.lastPathComponent.hasPrefix("Rightnest-Finder-Verification-"),
            (client.value(window, kAXTitleAttribute) as? String) == fixture.lastPathComponent { return true }
-        if matches(client.value(window, kAXDocumentAttribute)) || matches(client.value(window, "AXURL")) { return true }
+        if matches(client.value(window, kAXDocumentAttribute)) { return true }
         var budget = 100
         var matching = 0, other = 0
         func visit(_ node: AXUIElement, depth: Int) {
@@ -34,6 +34,7 @@ enum TextEditVerification {
                 return
             }
             if let children = client.value(node, kAXChildrenAttribute) as? [AXUIElement] {
+                if client.value(node, kAXRoleAttribute) as? String == kAXTabGroupRole && children.count > 1 { other += 1 }
                 for child in children { visit(child, depth: depth + 1) }
             }
         }

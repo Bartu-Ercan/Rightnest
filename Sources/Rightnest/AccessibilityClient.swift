@@ -13,6 +13,8 @@ struct WindowTarget {
 
 final class AccessibilityClient {
     private(set) var layoutDiagnostic = ""
+    private var surfaceSnapshot: [Surface]?
+    private var surfaceSnapshotLoaded = false
     private(set) var ownPanelOcclusion = false
     private(set) var placementIssue = "Unverified title bar"
     func value(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
@@ -25,6 +27,10 @@ final class AccessibilityClient {
         return unsafeDowncast(raw, to: AXUIElement.self)
     }
     func frame(_ element: AXUIElement) -> CGRect? {
+        if let raw = value(element, "AXFrame"), CFGetTypeID(raw) == AXValueGetTypeID() {
+            var rect = CGRect.zero
+            if AXValueGetValue(unsafeDowncast(raw, to: AXValue.self), .cgRect, &rect), WindowGeometry.valid(rect) { return rect }
+        }
         guard let position = value(element, kAXPositionAttribute), let size = value(element, kAXSizeAttribute),
               CFGetTypeID(position) == AXValueGetTypeID(), CFGetTypeID(size) == AXValueGetTypeID() else { return nil }
         var point = CGPoint.zero; var dimensions = CGSize.zero
@@ -104,7 +110,8 @@ final class AccessibilityClient {
     private func navigationSpacer(_ node: AXUIElement, window: CGRect) -> Bool {
         guard let parent = element(node, kAXParentAttribute),
               value(parent, kAXIdentifierAttribute) as? String == "WDSNavigationBar",
-              let rect = frame(node), rect.height <= 40, rect.width >= 100,
+              let rect = frame(node), let parentFrame = frame(parent), parentFrame.contains(rect),
+              parentFrame.height <= 60, rect.height <= 40, rect.width >= 100,
               rect.minY >= window.minY, rect.maxY <= window.minY+80,
               let peers = value(parent, kAXChildrenAttribute) as? [AXUIElement] else { return false }
         var actions: CFArray?
@@ -119,12 +126,15 @@ final class AccessibilityClient {
             buttons.allSatisfy { !$0.intersects(rect) }
     }
 
-    func placement(_ target: WindowTarget, overlayNumber: Int? = nil, screens: [CGRect] = []) -> CGRect? {
-        if let titlebar = titlebarPlacement(target, overlayNumber: overlayNumber) { return titlebar }
+    func placement(_ target: WindowTarget, overlayNumber: Int? = nil, screens: [CGRect] = [], preferred: CGRect? = nil) -> CGRect? {
+        surfaceSnapshot = nil; surfaceSnapshotLoaded = false
+        if let titlebar = titlebarPlacement(target, overlayNumber: overlayNumber, preferred: preferred) { return titlebar }
         layoutDiagnostic += "\nTitlebar result: " + placementIssue
         // An external shelf is allowed only in measured, vacant desktop space.
         // It never covers app content when an inaccessible toolbar cannot be inspected.
-        for candidate in Placement.detachedCandidates(window: target.frame, visibleFrames: screens) {
+        let outside = Placement.detachedCandidates(window: target.frame, visibleFrames: screens)
+        let orderedOutside = preferred.map { p in outside.filter { $0 == p } + outside.filter { $0 != p } } ?? outside
+        for candidate in orderedOutside {
             if outsideSurfaceClear(candidate, overlayNumber: overlayNumber) {
                 placementIssue = "Controls outside window"
                 return candidate
@@ -135,18 +145,21 @@ final class AccessibilityClient {
     }
 
     // Inspect known layout containers; never infer that an unknown subtree is blank.
-    private func titlebarPlacement(_ target: WindowTarget, overlayNumber: Int? = nil) -> CGRect? {
+    private func titlebarPlacement(_ target: WindowTarget, overlayNumber: Int? = nil, preferred: CGRect? = nil) -> CGRect? {
         ownPanelOcclusion = false
         placementIssue = "Missing close-button geometry"
         guard let close = target.close, let closeFrame = frame(close) else { return nil }
-        let candidates = Placement.candidates(window: target.frame, rowY: closeFrame.midY - 13)
+        let choices = Placement.candidates(window: target.frame, rowY: closeFrame.midY - 13)
+        var candidates = preferred.map { p in choices.filter { $0 == p } + choices.filter { $0 != p } } ?? choices
         placementIssue = "Not enough room in title bar"
         let deadline = ProcessInfo.processInfo.systemUptime + 0.4
         guard let first = candidates.first, let last = candidates.last else { return nil }
-        let searchArea = first.union(last)
+        var searchArea = choices.reduce(first.union(last)) { $0.union($1) }
         var obstacles: [CGRect] = []
         var verifiedBackgrounds: [AXUIElement] = []
         var toolbarFrames: [CGRect] = []
+        var navigationContext: (bar: AXUIElement, spacer: CGRect)?
+        var findingNavigationRow = true
         var descriptions: [String] = []
         defer { layoutDiagnostic = "window " + NSStringFromRect(target.frame) + " close " + NSStringFromRect(closeFrame) + " search " + NSStringFromRect(searchArea) + "\n" + descriptions.joined(separator: "\n") }
         var budget = 160
@@ -154,9 +167,11 @@ final class AccessibilityClient {
         func collect(_ node: AXUIElement, depth: Int) -> Bool {
             budget -= 1
             guard budget > 0, ProcessInfo.processInfo.systemUptime < deadline else { placementIssue = "Inspection limit reached"; return false }
+            guard let geometry = frame(node) else { placementIssue = "Missing title bar geometry"; return false }
+            guard geometry.insetBy(dx: -5, dy: -5).intersects(searchArea) else { return true }
             guard let role = value(node, kAXRoleAttribute) as? String else { placementIssue = "Unknown accessibility role"; return false }
             if (value(node, "AXHidden") as? Bool) == true { return true }
-            guard let rect = frame(node) else { placementIssue = "Missing geometry for \(role)"; return false }
+            let rect = geometry
             let layout = containers.contains(role) || role == kAXScrollAreaRole
             let measuredInk = role == kAXStaticTextRole ? textInkFrame(node) : nil
             let ink = measuredInk.flatMap { rect.insetBy(dx: -1, dy: -1).contains($0) ? $0 : nil }
@@ -167,23 +182,55 @@ final class AccessibilityClient {
             guard depth < 16 else { placementIssue = "Inspection limit reached"; return false }
             guard let children = value(node, kAXChildrenAttribute) as? [AXUIElement] else { placementIssue = "Incomplete title bar hierarchy"; return false }
             if children.isEmpty {
-                if role == kAXGroupRole && (chromiumTabBackground(node, window: target.frame) || navigationSpacer(node, window: target.frame)) {
+                let navigation = role == kAXGroupRole && navigationSpacer(node, window: target.frame)
+                if role == kAXGroupRole && (navigation || chromiumTabBackground(node, window: target.frame)) {
                     verifiedBackgrounds.append(node)
+                    if navigation, let parent = element(node, kAXParentAttribute),
+                       Placement.candidates(window: target.frame, rowY: rect.midY-13).contains(where: { rect.contains($0) }) {
+                        navigationContext = (parent, rect)
+                    }
                     descriptions.append("Verified native toolbar spacer " + NSStringFromRect(rect))
                 } else if role != kAXWindowRole && role != kAXToolbarRole {
                     obstacles.append(rect); descriptions.append("empty " + role + " " + NSStringFromRect(rect))
                 }
                 return true
             }
-            let complete = children.allSatisfy { collect($0, depth: depth + 1) }
+            var complete = true
+            for child in children {
+                if !collect(child, depth: depth+1) { complete = false; break }
+                // This discovery pass will be discarded and replaced by a full
+                // scoped navigation-bar pass. Do not query message content.
+                if findingNavigationRow && navigationContext != nil { break }
+            }
             if complete { verifiedBackgrounds.append(node); if role == kAXToolbarRole { toolbarFrames.append(rect) } }
             return complete
         }
         guard collect(target.window, depth: 0) else { return nil }
+        if let context = navigationContext, let barFrame = frame(context.bar) {
+            // Native navigation chrome clips the scroll content beneath it. Use
+            // its own row/subtree instead of recycled message-cell bounds which
+            // Catalyst may report beyond the actual scrolling viewport.
+            let row = Placement.candidates(window: target.frame, rowY: context.spacer.midY-13)
+                .filter { context.spacer.contains($0) && barFrame.contains($0) }
+            if let first = row.first {
+                candidates = preferred.map { p in row.filter { $0 == p } + row.filter { $0 != p } } ?? row
+                searchArea = row.reduce(first) { $0.union($1) }
+                findingNavigationRow = false
+                obstacles.removeAll(); verifiedBackgrounds.removeAll(); toolbarFrames.removeAll()
+                descriptions.append("Scoped native navigation row " + NSStringFromRect(searchArea))
+                guard collect(context.bar, depth: 0) else { return nil }
+            }
+        }
+        #if DEBUG
+        descriptions.append("collection ms " + String(Int((ProcessInfo.processInfo.systemUptime-deadline+0.4)*1000)))
+        #endif
         for candidate in candidates {
             guard ProcessInfo.processInfo.systemUptime < deadline else { placementIssue = "Inspection timed out"; return nil }
             guard !obstacles.contains(where: { $0.intersects(candidate) }) else { placementIssue = "No clear space in right title bar"; continue }
             if let rect = verifiedPlacement(target, candidate: candidate, overlayNumber: overlayNumber, deadline: deadline, backgrounds: verifiedBackgrounds, toolbarFrames: toolbarFrames) { return rect }
+            #if DEBUG
+            if descriptions.count < 16 { descriptions.append("candidate " + NSStringFromRect(candidate) + " rejected: " + placementIssue) }
+            #endif
         }
         return nil
     }
@@ -198,8 +245,8 @@ final class AccessibilityClient {
             return candidate
         }
         var overlaySurfaceClear: Bool?
-        for x in stride(from: candidate.minX, through: candidate.maxX, by: 8) {
-            for y in [candidate.minY, candidate.midY, candidate.maxY] {
+        for x in [candidate.minX+1, candidate.midX, candidate.maxX-1] {
+            for y in [candidate.minY+1, candidate.maxY-1] {
                 guard ProcessInfo.processInfo.systemUptime < deadline else { placementIssue = "Inspection timed out"; return nil }
                 var hit: AXUIElement?
                 let hitStatus = AXUIElementCopyElementAtPosition(system, Float(x), Float(y), &hit)
@@ -247,18 +294,8 @@ final class AccessibilityClient {
     // WindowServer ordering supplements AX hit tests while our exact overlay is
     // visible. Never ignore other Rightnest windows or a same-app overlapping window.
     private func visibleSurface(_ target: WindowTarget, candidate: CGRect, overlayNumber: Int?, wholeCoverage: Bool = false) -> Bool {
-        guard let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return false }
+        guard let surfaces = currentSurfaces() else { return false }
         guard let overlayNumber else { return false }
-        var surfaces: [Surface] = []
-        for info in windows {
-            guard let number = info[kCGWindowNumber as String] as? Int,
-                  let pid = info[kCGWindowOwnerPID as String] as? Int32,
-                  let layer = info[kCGWindowLayer as String] as? Int,
-                  let alpha = info[kCGWindowAlpha as String] as? Double,
-                  let bounds = info[kCGWindowBounds as String] as? NSDictionary,
-                  let rect = CGRect(dictionaryRepresentation: bounds) else { return false }
-            surfaces.append(Surface(number: number, pid: pid, layer: layer, bounds: rect, alpha: alpha))
-        }
         if wholeCoverage {
             return SurfaceOrder.overlayCoversClearTarget(surfaces, overlayNumber: overlayNumber,
                 ownPID: ProcessInfo.processInfo.processIdentifier, targetPID: target.pid,
@@ -268,8 +305,12 @@ final class AccessibilityClient {
             ownPID: ProcessInfo.processInfo.processIdentifier, targetPID: target.pid,
             targetFrame: target.frame, candidate: candidate)
     }
-    private func outsideSurfaceClear(_ candidate: CGRect, overlayNumber: Int?) -> Bool {
-        guard let raw = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return false }
+    // One bounded inspection uses one coherent WindowServer snapshot. Never
+    // cache across refreshes/actions, and never query the server per anchor.
+    private func currentSurfaces() -> [Surface]? {
+        if surfaceSnapshotLoaded { return surfaceSnapshot }
+        surfaceSnapshotLoaded = true
+        guard let raw = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return nil }
         var surfaces: [Surface] = []
         for info in raw {
             guard let number = info[kCGWindowNumber as String] as? Int,
@@ -277,9 +318,15 @@ final class AccessibilityClient {
                   let layer = info[kCGWindowLayer as String] as? Int,
                   let alpha = info[kCGWindowAlpha as String] as? Double,
                   let bounds = info[kCGWindowBounds as String] as? NSDictionary,
-                  let rect = CGRect(dictionaryRepresentation: bounds) else { return false }
+                  let rect = CGRect(dictionaryRepresentation: bounds) else { return nil }
             surfaces.append(Surface(number: number, pid: pid, layer: layer, bounds: rect, alpha: alpha))
         }
+        surfaceSnapshot = surfaces
+        return surfaces
+    }
+
+    private func outsideSurfaceClear(_ candidate: CGRect, overlayNumber: Int?) -> Bool {
+        guard let surfaces = currentSurfaces() else { return false }
         if surfaces.contains(where: { $0.pid == ProcessInfo.processInfo.processIdentifier && $0.alpha > 0 && $0.bounds.intersects(candidate) }) {
             ownPanelOcclusion = true
         }

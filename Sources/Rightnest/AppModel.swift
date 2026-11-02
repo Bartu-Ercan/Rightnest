@@ -173,6 +173,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     func verificationTrace() async -> [String] { await engine.verificationTrace() }
     var verificationActionIdle: Bool { actionTask == nil }
     var verificationPanelVisible: Bool { panel.isVisible }
+    var verificationOverlayNumber: Int? { panel.isVisible ? panel.windowNumber : nil }
     func invokeVerificationAction(_ action: WindowAction) -> Bool { panel.invokeForVerification(action) }
     #endif
     func requestPermission() {

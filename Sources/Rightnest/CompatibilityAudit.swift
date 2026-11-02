@@ -18,7 +18,7 @@ enum CompatibilityAudit {
                     CGRect(x: screen.visibleFrame.minX, y: (NSScreen.screens.first?.frame.maxY ?? 0)-screen.visibleFrame.maxY,
                            width: screen.visibleFrame.width, height: screen.visibleFrame.height)
                 }
-                let result = await engine.inspect(pid: app.processIdentifier, overlayNumber: nil, requireFocus: false, screens: screens)
+                let result = await engine.inspect(pid: app.processIdentifier, overlayNumber: model.verificationOverlayNumber, requireFocus: false, screens: screens)
                 let frame = result.snapshot.map { NSStringFromRect($0.frame) } ?? "unavailable"
                 let key = id + result.reason + frame
                 if previous[id] != key {

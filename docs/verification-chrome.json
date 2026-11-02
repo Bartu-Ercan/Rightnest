@@ -1,0 +1,22 @@
+{
+  "actionTrace" : "action close\nsnapshot {{80, 90}, {1760, 700}}",
+  "close" : "passed",
+  "document" : "disposable fixture verified by AXDocument or AXWebArea URL",
+  "expectedFit" : "{{0, 30}, {1920, 992}}",
+  "fit" : "passed",
+  "frontApplication" : "com.google.Chrome",
+  "lastActionResult" : "Window action sent",
+  "lastAppStatus" : "Window action sent",
+  "lastPlacementIssue" : "Unverified title bar",
+  "layout" : "window {{80, 90}, {1760, 700}} close {{92, 102.5}, {16, 16}} search {{974, 97.5}, {858, 26}}\nVerified native toolbar spacer {{484, 90}, {1356, 41}}\ncollection ms 6",
+  "minimize" : "passed",
+  "minimizeDispatchStatus" : "Checking target window…",
+  "minimizePlacementIssue" : "Unverified title bar",
+  "originalFrame" : "{{80, 90}, {1760, 700}}",
+  "panel" : "visible",
+  "permission" : "granted",
+  "restore" : "passed",
+  "restoreFrame" : "passed",
+  "result" : "passed",
+  "stability" : "passed: 30 visible samples over 3 seconds"
+}

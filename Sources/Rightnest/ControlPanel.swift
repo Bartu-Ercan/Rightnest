@@ -10,6 +10,7 @@ final class ControlPanel: NSPanel {
             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         isOpaque = false; backgroundColor = .clear; hasShadow = false
         hidesOnDeactivate = false; level = .floating
+        collectionBehavior = [.canJoinAllSpaces, .ignoresCycle]
         isMovable = false; isReleasedWhenClosed = false
         animationBehavior = .none
         let material = NSVisualEffectView(frame: NSRect(x: 0, y: 0, width: 102, height: 26))
