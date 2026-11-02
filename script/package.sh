@@ -19,5 +19,5 @@ cp LICENSE "$STAGE/LICENSE.txt"
 OUTPUT="$PWD/dist/Rightnest-$VERSION-preview-arm64.dmg"
 hdiutil create -volname "Rightnest $VERSION Preview" -srcfolder "$STAGE" -ov -format UDZO "$OUTPUT"
 hdiutil verify "$OUTPUT"
-shasum -a 256 "$OUTPUT" > "$OUTPUT.sha256"
+(cd "$PWD/dist" && shasum -a 256 "$(basename "$OUTPUT")") > "$OUTPUT.sha256"
 printf '%s\n' "$OUTPUT" 'Developer preview. Not Developer ID signed or notarized. See installation limitations.'

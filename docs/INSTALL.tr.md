@@ -1,6 +1,6 @@
 # Rightnest kurulumu
 
-Bu sürüm geliştirici önizlemesidir. Yalnız Apple Silicon hedeflenir; etkin dış uygulama desteği TextEdit ile sınırlıdır. Henüz herkese açık indirme yoktur.
+Bu sürüm geliştirici önizlemesidir. Yalnız Apple Silicon hedeflenir; etkin dış uygulama desteği TextEdit ile sınırlıdır. Sınırlı önizleme paketleri GitHub Releases sayfasında listelenir: https://github.com/Bartu-Ercan/Rightnest/releases.
 
 ## Kurulum
 

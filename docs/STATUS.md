@@ -13,7 +13,7 @@ User choices: extra right-side controls, originals retained, hide on uncertainty
 Actor-owned serial AX client, MainActor notification subscriptions and nonactivating panel, 1-second fallback, stale-result cancellation, split geometry transaction, bounded in-memory restore history. Onboarding, optional SMAppService startup and en/tr strings exist. Historical bundle ID/signing storage intentionally retained.
 
 ## Next actions
-1. Investigate close acknowledgement discrepancy and stale/misleading status after a successful action.
+1. Close acknowledgement discrepancy fixed by observing window removal; latest successful verification-textedit.json reports Window action sent. Remaining work: preserve useful action feedback while periodic status updates resume.
 2. On an actually isolated GUI environment: physical pointer/composite verification, origin-varied fit/restore regression, focus/occlusion/sheets/drag/Spaces tests. Another Space alone is not isolation.
 3. Improve app-specific titlebar traversal without assuming containers are blank; verify two additional daily apps before broad beta.
 4. One-hour soak, CPU/RSS, clean-account downloaded installation/update/removal, older macOS and accessibility visual validation.

@@ -30,3 +30,11 @@ The app remains a developer preview. Historical full-screen prototype tests are 
 `dist/Rightnest-0.1.0-preview-arm64.dmg` was produced after the fixes. DMG checksum verification passed. The image was mounted read-only with nobrowse, its app passed strict codesign verification and arm64 architecture verification, AppIcon.icns and Applications symlink were present, and the image was ejected. No app was launched. This validates package structure and local signature, not Gatekeeper acceptance or clean-user installation.
 
 Source repository: https://github.com/Bartu-Ercan/Rightnest. No public app release has been published.
+
+## Shareable preview continuation
+
+After action-state confirmation was added, `.build/verification-today/result.json` passed TextEdit minimize/restore/fit/restore-frame/close with lastActionResult = Window action sent. That report is copied to verification-textedit.json. Later verifier runs were interrupted by front-application changes (one caused by our UI inspection, another by normal user activity); they are not counted as passes. The verifier now waits for minimize/close transactions to settle before proceeding.
+
+Computer Use coordinate clicks on the own demo verified fit, return to original size and close. Captures showed the right strip clearly, but this does not prove the external overlay's composite appearance. The menu-bar completion preference persisted; the Computer Use tool reopens the app's settings on subsequent activation, so its snapshot alone cannot prove absence of a welcome window at normal startup.
+
+The limited preview is intended for informed testers; broad beta gates remain open. No clean-account or long-duration claim is made.

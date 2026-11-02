@@ -2,7 +2,7 @@
 
 ## Before installing
 
-Current status: developer preview, Apple Silicon only. TextEdit standard windows are the sole enabled external target. Download only a release whose source and limitations you have reviewed. No public release is available yet.
+Current status: developer preview, Apple Silicon only. TextEdit standard windows are the sole enabled external target. Download only a release whose source and limitations you have reviewed. Limited preview downloads, when available, are listed at https://github.com/Bartu-Ercan/Rightnest/releases.
 
 The app is **not Developer ID signed or notarized**. A local signature verifies package integrity but is not Apple's verification of the publisher. macOS can display an unidentified-developer warning or block a downloaded copy. Managed Macs may disallow it altogether. Do not disable Gatekeeper or remove quarantine through Terminal. If macOS offers an explicit per-app **Open Anyway** choice under Privacy & Security, use it only after checking the source and accepting that limitation. If it is unavailable, stop; source builds are intended for developers, not a mandatory end-user workaround.
 

@@ -139,6 +139,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     }
     #if DEBUG
     func verificationTrace() async -> [String] { await engine.verificationTrace() }
+    var verificationActionIdle: Bool { actionTask == nil }
     var verificationPanelVisible: Bool { panel.isVisible }
     func invokeVerificationAction(_ action: WindowAction) -> Bool { panel.invokeForVerification(action) }
     #endif

@@ -78,6 +78,7 @@ enum TextEditVerification {
             try await wait("Minimize action did not change the window") {
                 (client.value(target.window, kAXMinimizedAttribute) as? Bool) == true
             }
+            try await wait("Minimize transaction did not settle") { model.verificationActionIdle }
             report["minimize"] = "passed"
             guard AXUIElementSetAttributeValue(target.window, kAXMinimizedAttribute as CFString, kCFBooleanFalse) == .success else {
                 throw Failure(message: "Could not restore disposable window")
@@ -111,6 +112,7 @@ enum TextEditVerification {
                 guard let windows = client.value(AXUIElementCreateApplication(target.pid), kAXWindowsAttribute) as? [AXUIElement] else { return false }
                 return !windows.contains { CFEqual($0, target.window) }
             }
+            try await wait("Close transaction did not settle") { model.verificationActionIdle }
             report["close"] = "passed"
             report["result"] = "passed"
         } catch {

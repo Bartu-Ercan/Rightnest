@@ -69,7 +69,24 @@ actor WindowEngine {
             do { try await Task.sleep(for: .milliseconds(50)) } catch { return "Window action cancelled" }
         }
         guard clear, !Task.isCancelled else { return "Window action cancelled: surface did not clear" }
-        guard action == .fit else { return client.act(action, on: current) ? "Window action sent" : "Window action unavailable" }
+        if action != .fit {
+            let acknowledged = client.act(action, on: current)
+            // Closing can destroy the AX element before AXPress replies. Confirm
+            // the requested state instead of reporting failure from the ACK alone.
+            for _ in 0..<10 {
+                guard !Task.isCancelled, AXIsProcessTrusted() else { return "Window action cancelled" }
+                if action == .close {
+                    let app = AXUIElementCreateApplication(current.pid)
+                    AXUIElementSetMessagingTimeout(app, 0.08)
+                    if let windows = client.value(app, kAXWindowsAttribute) as? [AXUIElement],
+                       !windows.contains(where: { CFEqual($0, current.window) }) { return "Window action sent" }
+                } else if (client.value(current.window, kAXMinimizedAttribute) as? Bool) == true {
+                    return "Window action sent"
+                }
+                do { try await Task.sleep(for: .milliseconds(50)) } catch { return "Window action cancelled" }
+            }
+            return acknowledged ? "Window action awaiting application" : "Window action unavailable"
+        }
         guard current.resizable, let screen = WindowGeometry.screen(for: current.frame, visibleFrames: screens) else { return "Window cannot be resized" }
         let index = saved.firstIndex { $0.pid == current.pid && CFEqual($0.window, current.window) }
         let destination: CGRect

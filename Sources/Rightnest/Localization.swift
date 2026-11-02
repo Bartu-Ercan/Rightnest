@@ -11,6 +11,7 @@ private let translations: [String: String] = [
     "Window control permission needed": "Pencere kontrol izni gerekiyor", "External controls are off": "Diğer uygulamaların kontrolleri kapalı",
     "Controls hidden for this application": "Bu uygulamada kontroller gizli", "Checking target window…": "Hedef pencere kontrol ediliyor…",
     "Window action sent": "Pencere işlemi gönderildi", "Window action cancelled: target changed": "İşlem iptal edildi: hedef değişti",
+    "Window action awaiting application": "Pencere işlemi uygulamanın yanıtını bekliyor",
     "Window action unavailable": "Pencere işlemi kullanılamıyor", "Unsupported window state": "Desteklenmeyen pencere durumu",
     "Another window covers the title bar": "Başlık çubuğunu başka bir pencere kapatıyor",
     "Another surface covers the title bar": "Başlık çubuğu başka bir yüzeyle örtülü",

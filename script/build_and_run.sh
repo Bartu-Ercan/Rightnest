@@ -27,6 +27,7 @@ cat > "$BUNDLE/Contents/Info.plist" <<'PLIST'
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>0.1.0</string>
 <key>CFBundleVersion</key><string>2</string>
+<key>RightnestReleasesURL</key><string>https://github.com/Bartu-Ercan/Rightnest/releases</string>
 <key>CFBundleDevelopmentRegion</key><string>en</string>
 <key>CFBundleLocalizations</key><array><string>en</string><string>tr</string></array>
 <key>LSMinimumSystemVersion</key><string>13.0</string>

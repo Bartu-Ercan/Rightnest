@@ -18,7 +18,7 @@ English and Turkish follow the system language. Launch at login is off by defaul
 
 ## Download and installation
 
-There is no public download yet. Locally generated DMGs are **developer previews**, not production releases. Builds use a local certificate or ad-hoc signature, **not Apple Developer ID or notarization**. macOS may block downloaded copies, and managed devices may prohibit them. Open source does not remove Gatekeeper checks. No protection-disabling commands are part of our installation instructions.
+Download the limited developer preview from [GitHub Releases](https://github.com/Bartu-Ercan/Rightnest/releases). Locally generated DMGs are **developer previews**, not production releases. Builds use a local certificate or ad-hoc signature, **not Apple Developer ID or notarization**. macOS may block downloaded copies, and managed devices may prohibit them. Open source does not remove Gatekeeper checks. No protection-disabling commands are part of our installation instructions.
 
 [Installation, update and removal](docs/INSTALL.md) · [Türkçe kurulum](docs/INSTALL.tr.md) · [Privacy](docs/PRIVACY.md)
 
