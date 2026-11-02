@@ -17,3 +17,5 @@ Download the arm64 DMG and drag Rightnest to Applications. Eject the image, open
 - Physical pointer/composite validation of the external overlay, clean-account Internet-download installation, older macOS versions, multi-display/Spaces edge cases and long-duration use remain incomplete.
 
 The API baseline is macOS 13, but device testing is on the developer's macOS 27 host. Intel is not provided. This is a test build for reviewers, not a general-purpose stable release. No account, analytics or automatic updater.
+
+Current source CI: https://github.com/Bartu-Ercan/Rightnest/actions/runs/41455384828 (queued at publication time; consult the run for its final result). Local release build, 34 regression checks and staged package signature/architecture checks passed. A clean separate-user download/install has not been verified. Local Gatekeeper assessment rejects this self-signed build; the installation caveat above is a real limitation, not hypothetical.

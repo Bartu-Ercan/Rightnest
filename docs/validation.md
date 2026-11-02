@@ -3,7 +3,7 @@
 ## Verified
 
 - 34 standalone checks: placement 7, permission combinations 8, obstacle regressions 3, display/restore geometry 9, surface ordering 7.
-- Last recorded disposable TextEdit integration passed minimize, restore from minimized, fit, restore original frame and close. See verification-textedit.json. This uses real proxy NSButtons via performClick, not physical pointer input. The action trace ends with “Window action unavailable” despite observing the fixture close; that diagnostic discrepancy remains unresolved and the run is not a broad release approval.
+- Last recorded disposable TextEdit integration passed minimize, restore from minimized, fit, restore original frame and close. See verification-textedit.json. This uses real proxy NSButtons via performClick, not physical pointer input. The earlier acknowledgement discrepancy was fixed by confirming the observed action result. The current saved report ends with Window action sent; this still is not broad release approval.
 - Prior intermediate fit runs failed from certain starting origins. The last recorded source separates shrink, move and final size, waiting for observed geometry. No new foreground run was performed while the user was studying.
 - Existing local-certificate permission survived product rename in the prior session.
 
@@ -29,7 +29,7 @@ The app remains a developer preview. Historical full-screen prototype tests are 
 
 `dist/Rightnest-0.1.0-preview-arm64.dmg` was produced after the fixes. DMG checksum verification passed. The image was mounted read-only with nobrowse, its app passed strict codesign verification and arm64 architecture verification, AppIcon.icns and Applications symlink were present, and the image was ejected. No app was launched. This validates package structure and local signature, not Gatekeeper acceptance or clean-user installation.
 
-Source repository: https://github.com/Bartu-Ercan/Rightnest. No public app release has been published.
+Source repository: https://github.com/Bartu-Ercan/Rightnest. A limited TextEdit preview has been published at https://github.com/Bartu-Ercan/Rightnest/releases/tag/v0.1.0-preview.1.
 
 ## Shareable preview continuation
 
