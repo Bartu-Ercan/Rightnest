@@ -43,7 +43,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     static let candidates = [("com.apple.TextEdit", "TextEdit"), ("com.apple.Preview", "Preview"),
         ("com.apple.finder", "Finder"), ("com.apple.Safari", "Safari"), ("com.google.Chrome", "Chrome")]
     // Candidates are not support claims. Broader support stays off until verified.
-    static let verifiedApplications: Set<String> = ["com.apple.TextEdit"]
+    static let verifiedApplications: Set<String> = ["com.apple.TextEdit", "com.apple.Safari", "com.apple.finder"]
     func setLaunchAtLogin(_ enabled: Bool) {
         do {
             if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
@@ -81,7 +81,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
 
     private var isVerificationRun: Bool {
         #if DEBUG
-        CommandLine.arguments.contains("--audit-compatibility") || CommandLine.arguments.contains("--verify-textedit")
+        CommandLine.arguments.contains("--audit-compatibility") || CommandLine.arguments.contains("--verify-textedit") || (CommandLine.arguments.contains("--verify-safari") || CommandLine.arguments.contains("--verify-finder"))
         #else
         false
         #endif
@@ -111,6 +111,16 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
             let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
             Task { await CompatibilityAudit.run(directory: directory) }
         }
+        if let index = CommandLine.arguments.firstIndex(of: "--verify-finder"), CommandLine.arguments.indices.contains(index + 2) {
+            let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
+            let fixture = URL(fileURLWithPath: CommandLine.arguments[index + 2], isDirectory: true)
+            Task { await TextEditVerification.run(model: self, directory: directory, browserFixture: fixture, fixtureApplicationID: "com.apple.finder") }
+        }
+        if let index = CommandLine.arguments.firstIndex(of: "--verify-safari"), CommandLine.arguments.indices.contains(index + 2) {
+            let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
+            let fixture = URL(fileURLWithPath: CommandLine.arguments[index + 2])
+            Task { await TextEditVerification.run(model: self, directory: directory, browserFixture: fixture) }
+        }
         if let index = CommandLine.arguments.firstIndex(of: "--verify-textedit"), CommandLine.arguments.indices.contains(index + 1) {
             let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
             Task { await TextEditVerification.run(model: self, directory: directory) }
@@ -138,6 +148,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
         if !result { panel.orderOut(nil) }
     }
     #if DEBUG
+    func verificationLayout() async -> String { await engine.auditLayout() }
     func verificationTrace() async -> [String] { await engine.verificationTrace() }
     var verificationActionIdle: Bool { actionTask == nil }
     var verificationPanelVisible: Bool { panel.isVisible }

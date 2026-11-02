@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0 Preview 2 — 2026-11-02
+
+- Add limited Safari and Finder support after disposable-window action verification.
+- Search verified titlebar gaps in the right half; traverse native split/tab groups and measure native text ink without reading text.
+- Stabilize fit/restore around native tiling and delayed geometry application.
+- Add 7 regression checks (41 total) and an explicit original-plan audit.
+- Chrome/Preview and broader release gates remain incomplete.
+
 ## 0.1.0 Preview 1 — 2026-11-02
 
 - Renamed the product from Starboard to Rightnest; retained internal bundle/signing identity for continuity.

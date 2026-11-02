@@ -15,7 +15,32 @@ enum TextEditVerification {
         }
         throw Failure(message: message)
     }
-    static func run(model: AppModel, directory: URL) async {
+    static func matchesFixture(_ window: AXUIElement, fixture: URL, client: AccessibilityClient, finderFixture: Bool = false) -> Bool {
+        func matches(_ raw: CFTypeRef?) -> Bool {
+            if let url = raw as? URL { return url.isFileURL && fixture.isFileURL ? url.standardizedFileURL.path == fixture.standardizedFileURL.path : url == fixture }
+            if let string = raw as? String, let url = URL(string: string) { return url.isFileURL && fixture.isFileURL ? url.standardizedFileURL.path == fixture.standardizedFileURL.path : url == fixture }
+            return false
+        }
+        if finderFixture, fixture.lastPathComponent.hasPrefix("Rightnest-Finder-Verification-"),
+           (client.value(window, kAXTitleAttribute) as? String) == fixture.lastPathComponent { return true }
+        if matches(client.value(window, kAXDocumentAttribute)) || matches(client.value(window, "AXURL")) { return true }
+        var budget = 100
+        var matching = 0, other = 0
+        func visit(_ node: AXUIElement, depth: Int) {
+            budget -= 1
+            guard budget > 0, depth < 7 else { other += 1; return }
+            if (client.value(node, kAXRoleAttribute) as? String) == "AXWebArea" {
+                if matches(client.value(node, "AXURL")) { matching += 1 } else { other += 1 }
+                return
+            }
+            if let children = client.value(node, kAXChildrenAttribute) as? [AXUIElement] {
+                for child in children { visit(child, depth: depth + 1) }
+            }
+        }
+        visit(window, depth: 0)
+        return matching == 1 && other == 0
+    }
+    static func run(model: AppModel, directory: URL, browserFixture: URL? = nil, fixtureApplicationID: String = "com.apple.Safari") async {
         let client = AccessibilityClient()
         var report: [String: String] = [:]
         let previousEnabled = model.enabled, previousExperiment = model.textEditEnabled
@@ -25,23 +50,29 @@ enum TextEditVerification {
             report["permission"] = "granted"
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             try? FileManager.default.removeItem(at: directory.appendingPathComponent("result.json"))
-            let fixture = directory.appendingPathComponent("Rightnest Window Verification.txt")
-            try Data().write(to: fixture, options: .atomic)
-            guard let application = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.TextEdit") else {
+            let fixture = browserFixture ?? directory.appendingPathComponent("Rightnest Window Verification.txt")
+            let applicationID = browserFixture == nil ? "com.apple.TextEdit" : fixtureApplicationID
+            if browserFixture == nil { try Data().write(to: fixture, options: .atomic) }
+            guard let application = NSWorkspace.shared.urlForApplication(withBundleIdentifier: applicationID) else {
                 throw Failure(message: "TextEdit unavailable")
             }
             model.enabled = true; model.textEditEnabled = true
             let configuration = NSWorkspace.OpenConfiguration()
             configuration.activates = true
             configuration.addsToRecentItems = false
-            let running = try await NSWorkspace.shared.open([fixture], withApplicationAt: application, configuration: configuration)
+            let running: NSRunningApplication
+            if browserFixture != nil {
+                guard let browser = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == applicationID }) else { throw Failure(message: "Safari is not running") }
+                running = browser
+            } else {
+                running = try await NSWorkspace.shared.open([fixture], withApplicationAt: application, configuration: configuration)
+            }
             // Recover only this fixture if an interrupted earlier run left it full-screen.
             var fixtureWindow: AXUIElement?
             try await wait("Disposable document did not open") {
                 guard let windows = client.value(AXUIElementCreateApplication(running.processIdentifier), kAXWindowsAttribute) as? [AXUIElement] else { return false }
                 fixtureWindow = windows.first {
-                    guard let raw = client.value($0, kAXDocumentAttribute) as? String else { return false }
-                    return URL(string: raw)?.standardizedFileURL == fixture.standardizedFileURL
+                    return matchesFixture($0, fixture: fixture, client: client, finderFixture: applicationID == "com.apple.finder")
                 }
                 return fixtureWindow != nil
             }
@@ -59,17 +90,27 @@ enum TextEditVerification {
                 }
                 _ = AXUIElementPerformAction(window, kAXRaiseAction as CFString)
                 running.activate(options: [])
+                if browserFixture != nil {
+                    try await Task.sleep(for: .milliseconds(500))
+                    _ = client.setPosition(CGPoint(x: 80, y: 90), on: window)
+                    try await Task.sleep(for: .milliseconds(200))
+                    let fixtureWidth: CGFloat = applicationID == "com.apple.finder" ? 1760 : 1469
+                    _ = client.setSize(CGSize(width: fixtureWidth, height: 700), on: window)
+                    try await wait("Safari fixture did not accept normal starting size") {
+                        guard let rect = client.frame(window) else { return false }
+                        return abs(rect.width-fixtureWidth) <= 2 && abs(rect.height-700) <= 2
+                    }
+                }
             }
             var target: WindowTarget?
             try await wait("Disposable document did not become focused") {
-                guard let front = NSWorkspace.shared.frontmostApplication, front.bundleIdentifier == "com.apple.TextEdit",
+                guard let front = NSWorkspace.shared.frontmostApplication, front.bundleIdentifier == applicationID,
                       let found = client.target(pid: front.processIdentifier),
-                      let raw = client.value(found.window, kAXDocumentAttribute) as? String,
-                      URL(string: raw)?.standardizedFileURL == fixture.standardizedFileURL else { return false }
+                      matchesFixture(found.window, fixture: fixture, client: client, finderFixture: applicationID == "com.apple.finder") else { return false }
                 target = found; return true
             }
             guard let target else { throw Failure(message: "No verified target") }
-            report["document"] = "disposable fixture verified by AXDocument URL"
+            report["document"] = applicationID == "com.apple.finder" ? "explicitly prepared unique Finder fixture title verified" : "disposable fixture verified by AXDocument or AXWebArea URL"
             try await wait("Control panel did not appear") { model.verificationPanelVisible }
             report["panel"] = "visible"
             guard model.invokeVerificationAction(.minimize) else { throw Failure(message: "Minimize button unavailable") }
@@ -97,7 +138,7 @@ enum TextEditVerification {
             report["originalFrame"] = NSStringFromRect(original)
             guard model.invokeVerificationAction(.fit) else { throw Failure(message: "Fit button unavailable") }
             try await wait("Fit did not reach visible screen bounds") {
-                client.frame(target.window).map { WindowGeometry.close($0, fitted) } ?? false
+                client.frame(target.window).map { WindowGeometry.isFitted($0, inside: fitted) } ?? false
             }
             report["fit"] = "passed"
             try await wait("Panel did not return after fit") { model.verificationPanelVisible }
@@ -124,6 +165,7 @@ enum TextEditVerification {
         report["actionTrace"] = await model.verificationTrace().joined(separator: "\n")
         report["lastActionResult"] = model.lastActionResult
         report["lastAppStatus"] = model.status
+        report["layout"] = await model.verificationLayout()
         report["lastPlacementIssue"] = client.placementIssue
         do {
             let data = try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys])

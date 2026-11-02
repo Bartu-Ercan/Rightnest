@@ -2,7 +2,7 @@
 
 Native macOS menu-bar utility that adds **minimize, fit/restore, and close** controls to the right of supported windows. Original left-side controls remain in place. Occupied or uncertain layouts are rejected.
 
-**Developer preview, not a universal window-control replacement.** TextEdit is the only enabled external application. Finder, Safari, Chrome and Preview are being evaluated. No broad beta is published until at least two additional daily-use apps pass real interaction tests. See [compatibility](docs/compatibility.md) and [validation](docs/validation.md).
+**Developer preview, not a universal window-control replacement.** TextEdit, Safari and Finder are enabled in Preview 2 when the right half of the titlebar has verifiable free space. Narrow windows may intentionally show no controls. Chrome and Preview remain disabled. Normal action flows have passed in Safari and Finder; broad beta still requires pointer/composite, edge-case and installation validation. See [compatibility](docs/compatibility.md) and [validation](docs/validation.md).
 
 ## Use
 

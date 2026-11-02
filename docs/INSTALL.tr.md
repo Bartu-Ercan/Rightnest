@@ -1,6 +1,6 @@
 # Rightnest kurulumu
 
-Bu sürüm geliştirici önizlemesidir. Yalnız Apple Silicon hedeflenir; etkin dış uygulama desteği TextEdit ile sınırlıdır. Sınırlı önizleme paketleri GitHub Releases sayfasında listelenir: https://github.com/Bartu-Ercan/Rightnest/releases.
+Bu sürüm geliştirici önizlemesidir. Yalnız Apple Silicon hedeflenir; Preview 2’de TextEdit, Safari ve Finder’ın yeterli başlık çubuğu boşluğu olan standart pencereleri desteklenir. Dar veya dolu yerleşimlerde kontroller gizlenir. Sınırlı önizleme paketleri GitHub Releases sayfasında listelenir: https://github.com/Bartu-Ercan/Rightnest/releases.
 
 ## Kurulum
 

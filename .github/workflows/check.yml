@@ -21,7 +21,7 @@ jobs:
         run: |
           codesign --verify --strict dist/Rightnest.app
           lipo dist/Rightnest.app/Contents/MacOS/Rightnest -verify_arch arm64
-          if strings dist/Rightnest.app/Contents/MacOS/Rightnest | grep -E -- '--verify-textedit|--audit-compatibility'; then exit 1; fi
+          if strings dist/Rightnest.app/Contents/MacOS/Rightnest | grep -E -- '--verify-textedit|--verify-safari|--verify-finder|--audit-compatibility'; then exit 1; fi
       - name: Archive bundle preserving permissions
         run: ditto -c -k --keepParent dist/Rightnest.app dist/Rightnest-ci.zip
       - uses: actions/upload-artifact@v4

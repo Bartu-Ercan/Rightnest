@@ -1,12 +1,18 @@
 import Foundation
 
 func L(_ english: String) -> String {
+    let technicalPrefixes = ["Missing geometry", "Unknown accessibility", "Unverified title bar surface", "Incomplete title bar", "Title bar hit test failed", "Unknown owner"]
+    let message = technicalPrefixes.contains(where: { english.hasPrefix($0) }) ? "Window layout could not be verified" : english
     let turkish = Locale.preferredLanguages.first?.hasPrefix("tr") == true
-    return turkish ? translations[english] ?? english : english
+    return turkish ? translations[message] ?? message : message
 }
 private let translations: [String: String] = [
     "Minimize window": "Pencereyi küçült", "Fit or restore window": "Ekrana sığdır veya geri yükle",
     "Close window": "Pencereyi kapat", "Restore window": "Pencereyi geri yükle", "Fit window to screen": "Pencereyi ekrana sığdır",
+    "Window layout could not be verified": "Pencere düzeni doğrulanamadı",
+    "No clear space in right title bar": "Başlık çubuğunun sağında yeterli boşluk yok",
+    "Inspection timed out": "Pencere düzeni kontrolü zaman aşımına uğradı",
+    "Inspection limit reached": "Pencere düzeni güvenle doğrulanamadı",
     "Paused": "Duraklatıldı", "Hidden": "Gizli", "Controls active": "Kontroller etkin",
     "Window control permission needed": "Pencere kontrol izni gerekiyor", "External controls are off": "Diğer uygulamaların kontrolleri kapalı",
     "Controls hidden for this application": "Bu uygulamada kontroller gizli", "Checking target window…": "Hedef pencere kontrol ediliyor…",
@@ -24,7 +30,7 @@ private let translations: [String: String] = [
     "Window controls. On your right.": "Pencere kontrolleri. Sağınızda.", "PREVIEW": "ÖNİZLEME",
     "Try it first, without permission": "Önce izin vermeden deneyin",
     "A safe test window lets you try the three right-side controls before allowing access to other apps.": "Diğer uygulamalara erişim vermeden önce üç sağ kontrolü güvenli bir deneme penceresinde deneyin.",
-    "Enable external controls (TextEdit preview)": "Diğer uygulamalarda etkinleştir (TextEdit önizlemesi)",
+    "Enable external controls (TextEdit, Safari and Finder preview)": "Diğer uygulamalarda etkinleştir (TextEdit, Safari ve Finder önizlemesi)",
     "Launch at login": "Oturum açıldığında başlat", "Continue in menu bar": "Menü çubuğunda devam et", "Enabled": "Etkin",
     "Other applications are being evaluated. Unsupported layouts remain hidden.": "Diğer uygulamalar değerlendiriliyor. Desteklenmeyen yerleşimlerde kontroller gizlenir.",
     "A familiar corner.": "Tanıdık bir köşe.", "Minimize": "Küçült", "Fit / restore": "Sığdır / geri yükle", "Close": "Kapat",
@@ -34,7 +40,7 @@ private let translations: [String: String] = [
     "Window control is allowed": "Pencere kontrolüne izin verildi", "Window control needs permission again": "Pencere kontrolü yeniden izin istiyor", "READY": "HAZIR",
     "Permission detected. Try a TextEdit document next. The original left-side controls stay in place.": "İzin algılandı. Şimdi bir TextEdit belgesinde deneyin. Soldaki özgün kontroller yerinde kalır.",
     "Try in TextEdit": "TextEdit’te dene",
-    "Preview support: TextEdit only. If the title bar is occupied or uncertain, controls stay hidden.": "Önizleme desteği yalnız TextEdit içindir. Başlık çubuğu doluysa veya belirsizse kontroller gizlenir.",
+    "Preview support: TextEdit, Safari and Finder. If the title bar is occupied or uncertain, controls stay hidden.": "Önizleme desteği TextEdit, Safari ve Finder içindir. Başlık çubuğu doluysa veya belirsizse kontroller gizlenir.",
     "Rightnest needs macOS permission to close, minimize and resize another app’s window. macOS grants broad control; Rightnest uses it for window controls and does not send window data to a server.": "Rightnest, başka uygulamaların pencerelerini kapatmak, küçültmek ve boyutlandırmak için macOS izni ister. Bu izin geniş erişim sağlar; Rightnest bunu pencere kontrollerinde kullanır, pencere verilerini bir sunucuya göndermez.",
     "1. In System Settings, find Rightnest.": "1. Sistem Ayarları’nda Rightnest’u bulun.",
     "2. Turn on the switch beside it.": "2. Yanındaki anahtarı açın.", "3. Return here. Rightnest checks automatically.": "3. Buraya dönün. Rightnest otomatik kontrol eder.",

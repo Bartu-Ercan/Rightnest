@@ -64,7 +64,7 @@ struct WelcomeView: View {
                 Button(L("Open Test Window")) { model.openDemo() }
             }
             if model.trusted {
-                Toggle(L("Enable external controls (TextEdit preview)"), isOn: $model.textEditEnabled).font(.callout)
+                Toggle(L("Enable external controls (TextEdit, Safari and Finder preview)"), isOn: $model.textEditEnabled).font(.callout)
             }
             VStack(alignment: .leading, spacing: 9) {
                 Toggle(L("Launch at login"), isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) }))

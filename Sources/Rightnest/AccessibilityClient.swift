@@ -12,6 +12,7 @@ struct WindowTarget {
 }
 
 final class AccessibilityClient {
+    private(set) var layoutDiagnostic = ""
     private(set) var ownPanelOcclusion = false
     private(set) var placementIssue = "Unverified title bar"
     func value(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
@@ -29,6 +30,7 @@ final class AccessibilityClient {
         var point = CGPoint.zero; var dimensions = CGSize.zero
         guard AXValueGetValue(unsafeDowncast(position, to: AXValue.self), .cgPoint, &point),
               AXValueGetValue(unsafeDowncast(size, to: AXValue.self), .cgSize, &dimensions) else { return nil }
+        guard [point.x, point.y, dimensions.width, dimensions.height].allSatisfy(\.isFinite), dimensions.width >= 0, dimensions.height >= 0 else { return nil }
         return CGRect(origin: point, size: dimensions)
     }
     func writable(_ element: AXUIElement, _ name: String) -> Bool {
@@ -61,43 +63,67 @@ final class AccessibilityClient {
             resizable: writable(window, kAXPositionAttribute) && writable(window, kAXSizeAttribute))
     }
 
-    // Strict initial support: TextEdit standard windows only. Never treat a missing subtree as blank.
+    private func textInkFrame(_ node: AXUIElement) -> CGRect? {
+        guard let count = value(node, "AXNumberOfCharacters") as? Int, count > 0, count <= 4096 else { return nil }
+        var range = CFRange(location: 0, length: count)
+        guard let argument = AXValueCreate(.cfRange, &range) else { return nil }
+        var raw: CFTypeRef?
+        guard AXUIElementCopyParameterizedAttributeValue(node, "AXBoundsForRange" as CFString, argument, &raw) == .success,
+              let raw, CFGetTypeID(raw) == AXValueGetTypeID() else { return nil }
+        var rect = CGRect.zero
+        guard AXValueGetValue(unsafeDowncast(raw, to: AXValue.self), .cgRect, &rect), WindowGeometry.valid(rect) else { return nil }
+        return rect
+    }
+
+    // Inspect known layout containers; never infer that an unknown subtree is blank.
     func placement(_ target: WindowTarget, overlayNumber: Int? = nil) -> CGRect? {
         ownPanelOcclusion = false
         placementIssue = "Missing close-button geometry"
         guard let close = target.close, let closeFrame = frame(close) else { return nil }
+        let candidates = Placement.candidates(window: target.frame, rowY: closeFrame.midY - 13)
         placementIssue = "Not enough room in title bar"
-        guard let candidate = Placement.candidate(window: target.frame, rowY: closeFrame.midY - 13,
-                                                   obstacles: [], boundsKnown: true) else { return nil }
-        let deadline = ProcessInfo.processInfo.systemUptime + 0.12
+        let deadline = ProcessInfo.processInfo.systemUptime + 0.4
+        guard let first = candidates.first, let last = candidates.last else { return nil }
+        let searchArea = first.union(last)
+        var obstacles: [CGRect] = []
+        var verifiedBackgrounds: [AXUIElement] = []
+        var toolbarFrames: [CGRect] = []
+        var descriptions: [String] = []
+        defer { layoutDiagnostic = "window " + NSStringFromRect(target.frame) + " close " + NSStringFromRect(closeFrame) + " search " + NSStringFromRect(searchArea) + "\n" + descriptions.joined(separator: "\n") }
         var budget = 100
-        func clear(_ node: AXUIElement, depth: Int) -> Bool {
+        let containers = [kAXWindowRole, kAXToolbarRole, kAXGroupRole, kAXSplitGroupRole, kAXTabGroupRole]
+        func collect(_ node: AXUIElement, depth: Int) -> Bool {
             budget -= 1
             guard budget > 0, depth < 7, ProcessInfo.processInfo.systemUptime < deadline else { placementIssue = "Inspection limit reached"; return false }
-            guard let role = value(node, kAXRoleAttribute) as? String else {
-                placementIssue = "Unknown accessibility role"; return false
-            }
-            // Hidden elements do not occupy visible titlebar space. Disabled elements still can.
+            guard let role = value(node, kAXRoleAttribute) as? String else { placementIssue = "Unknown accessibility role"; return false }
             if (value(node, "AXHidden") as? Bool) == true { return true }
             guard let rect = frame(node) else { placementIssue = "Missing geometry for \(role)"; return false }
-            // Content below the titlebar is not a toolbar obstacle. Apply the safety gap to
-            // controls only; expanding a document's large scroll area creates false collisions.
-            let containers = [kAXWindowRole, kAXToolbarRole, kAXGroupRole, kAXScrollAreaRole]
-            guard Placement.overlapsTitlebar(rect, candidate: candidate, isLayoutContainer: containers.contains(role)) else { return true }
-            guard [kAXWindowRole, kAXToolbarRole, kAXGroupRole].contains(role) else {
-                placementIssue = "Title bar intersects \(role)"; return false
-            }
-            guard let children = value(node, kAXChildrenAttribute) as? [AXUIElement] else {
-                placementIssue = "Incomplete title bar hierarchy"; return false
-            }
+            let layout = containers.contains(role) || role == kAXScrollAreaRole
+            let measuredInk = role == kAXStaticTextRole ? textInkFrame(node) : nil
+            let ink = measuredInk.flatMap { rect.insetBy(dx: -1, dy: -1).contains($0) ? $0 : nil }
+            if ink != nil { verifiedBackgrounds.append(node) }
+            let occupied = layout ? rect : (ink ?? rect).insetBy(dx: -5, dy: -5)
+            guard occupied.intersects(searchArea) else { return true }
+            guard containers.contains(role) else { obstacles.append(occupied); descriptions.append(role + " " + NSStringFromRect(occupied)); return true }
+            guard let children = value(node, kAXChildrenAttribute) as? [AXUIElement] else { placementIssue = "Incomplete title bar hierarchy"; return false }
             if children.isEmpty {
-                let knownBackground = role == kAXWindowRole || role == kAXToolbarRole
-                if !knownBackground { placementIssue = "Unknown empty title bar group" }
-                return knownBackground
+                if role != kAXWindowRole && role != kAXToolbarRole { obstacles.append(rect); descriptions.append("empty " + role + " " + NSStringFromRect(rect)) }
+                return true
             }
-            return children.allSatisfy { clear($0, depth: depth + 1) }
+            let complete = children.allSatisfy { collect($0, depth: depth + 1) }
+            if complete { verifiedBackgrounds.append(node); if role == kAXToolbarRole { toolbarFrames.append(rect) } }
+            return complete
         }
-        guard clear(target.window, depth: 0) else { return nil }
+        guard collect(target.window, depth: 0) else { return nil }
+        for candidate in candidates {
+            guard ProcessInfo.processInfo.systemUptime < deadline else { placementIssue = "Inspection timed out"; return nil }
+            guard !obstacles.contains(where: { $0.intersects(candidate) }) else { placementIssue = "No clear space in right title bar"; continue }
+            if let rect = verifiedPlacement(target, candidate: candidate, overlayNumber: overlayNumber, deadline: deadline, backgrounds: verifiedBackgrounds, toolbarFrames: toolbarFrames) { return rect }
+        }
+        return nil
+    }
+    private func verifiedPlacement(_ target: WindowTarget, candidate: CGRect, overlayNumber: Int?, deadline: TimeInterval, backgrounds: [AXUIElement], toolbarFrames: [CGRect]) -> CGRect? {
+        ownPanelOcclusion = false
         // Hit-test visible geometry too. A different window, button, or unknown node rejects placement.
         placementIssue = "Another surface covers the title bar"
         let system = AXUIElementCreateSystemWide()
@@ -128,8 +154,12 @@ final class AccessibilityClient {
                 guard let ownerWindow, CFEqual(ownerWindow, target.window) else {
                     placementIssue = "Another window covers the title bar"; return nil
                 }
-                guard [kAXWindowRole, kAXToolbarRole].contains(role) else {
-                    placementIssue = "Unverified title bar surface: \(role)"; return nil
+                // Safari can return its WebArea for transparent native toolbar
+                // background. Correct only a geometrically disjoint content hit
+                // inside a completely inspected native toolbar, never real content.
+                let disjointContentHit = role == "AXWebArea" && frame(hit).map { WindowGeometry.valid($0) && !$0.intersects(candidate) } == true && toolbarFrames.contains { $0.contains(candidate) }
+                guard [kAXWindowRole, kAXToolbarRole].contains(role) || backgrounds.contains(where: { CFEqual($0, hit) }) || disjointContentHit else {
+                    placementIssue = "Unverified title bar surface: \(role) " + (frame(hit).map { NSStringFromRect($0) } ?? "missing"); return nil
                 }
             }
         }

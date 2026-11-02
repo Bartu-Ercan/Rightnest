@@ -17,4 +17,16 @@ final class WindowGeometryTests: XCTestCase {
         let rect = CGRect(x: -100, y: -900, width: 900, height: 600)
         XCTAssertEqual(WindowGeometry.flip(WindowGeometry.flip(rect, primaryTop: 1080), primaryTop: 1080), rect)
     }
+    func testFitAllowsOnlySmallNativeMargins() {
+        let available = CGRect(x: 0, y: 30, width: 1920, height: 992)
+        XCTAssertTrue(WindowGeometry.isFitted(CGRect(x: 3, y: 34, width: 1917, height: 987), inside: available))
+        XCTAssertFalse(WindowGeometry.isFitted(available.insetBy(dx: 20, dy: 20), inside: available))
+        XCTAssertFalse(WindowGeometry.isFitted(available.offsetBy(dx: -10, dy: 0), inside: available))
+    }
+    func testPlacementSearchRetainsRightHalfBoundary() {
+        let window = CGRect(x: -1000, y: 40, width: 900, height: 600)
+        let candidates = Placement.candidates(window: window, rowY: 44)
+        XCTAssertEqual(candidates.first, Placement.candidate(window: window, rowY: 44, obstacles: [], boundsKnown: true))
+        XCTAssertTrue(candidates.allSatisfy { $0.minX >= window.midX && window.contains($0) })
+    }
 }

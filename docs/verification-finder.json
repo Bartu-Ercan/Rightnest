@@ -1,0 +1,21 @@
+{
+  "actionTrace" : "action close\nsnapshot {{80, 90}, {1760, 700}}",
+  "close" : "passed",
+  "document" : "explicitly prepared unique Finder fixture title verified",
+  "expectedFit" : "{{0, 30}, {1920, 992}}",
+  "fit" : "passed",
+  "frontApplication" : "com.apple.finder",
+  "lastActionResult" : "Window action sent",
+  "lastAppStatus" : "Window action sent",
+  "lastPlacementIssue" : "Unverified title bar",
+  "layout" : "window {{80, 90}, {1760, 700}} close {{98, 108}, {16, 16}} search {{974, 103}, {858, 26}}\nAXRadioGroup {{1159, 92}, {172, 48}}\nAXMenuButton {{1328, 85}, {57, 62}}\nAXButton {{1383, 85}, {46, 62}}\nAXButton {{1419, 85}, {48, 62}}\nAXMenuButton {{1457, 85}, {47, 62}}\nAXTextField {{1501, 92}, {337, 48}}",
+  "minimize" : "passed",
+  "minimizeDispatchStatus" : "Checking target window…",
+  "minimizePlacementIssue" : "Unverified title bar",
+  "originalFrame" : "{{80, 90}, {1760, 700}}",
+  "panel" : "visible",
+  "permission" : "granted",
+  "restore" : "passed",
+  "restoreFrame" : "passed",
+  "result" : "passed"
+}

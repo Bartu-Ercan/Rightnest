@@ -20,6 +20,14 @@ public enum WindowGeometry {
         abs(a.minX-b.minX) <= tolerance && abs(a.minY-b.minY) <= tolerance &&
         abs(a.width-b.width) <= tolerance && abs(a.height-b.height) <= tolerance
     }
+    /// macOS may retain a small native tiling margin after a successful resize.
+    /// This applies to fit confirmation only, never target identity or restoration.
+    public static func isFitted(_ actual: CGRect, inside available: CGRect) -> Bool {
+        guard valid(actual), valid(available) else { return false }
+        let insets = [actual.minX-available.minX, actual.minY-available.minY,
+                      available.maxX-actual.maxX, available.maxY-actual.maxY]
+        return insets.allSatisfy { $0 >= -1 && $0 <= 8 }
+    }
     public static func clamped(_ rect: CGRect, to screen: CGRect) -> CGRect {
         let width = min(rect.width, screen.width), height = min(rect.height, screen.height)
         return CGRect(x: min(max(rect.minX, screen.minX), screen.maxX-width),

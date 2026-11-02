@@ -1,0 +1,21 @@
+{
+  "actionTrace" : "action close\nsnapshot {{80, 89}, {1470, 701}}",
+  "close" : "passed",
+  "document" : "disposable fixture verified by AXDocument or AXWebArea URL",
+  "expectedFit" : "{{0, 30}, {1920, 992}}",
+  "finalFrame" : "{{319, 81}, {1469, 700}}",
+  "fit" : "passed",
+  "frontApplication" : "com.apple.Safari",
+  "lastActionResult" : "Window action sent",
+  "lastAppStatus" : "Window action sent",
+  "lastPlacementIssue" : "Unverified title bar",
+  "minimize" : "passed",
+  "minimizeDispatchStatus" : "Checking target window…",
+  "minimizePlacementIssue" : "Unverified title bar",
+  "originalFrame" : "{{80, 90}, {1469, 700}}",
+  "panel" : "visible",
+  "permission" : "granted",
+  "restore" : "passed",
+  "restoreFrame" : "passed",
+  "result" : "passed"
+}

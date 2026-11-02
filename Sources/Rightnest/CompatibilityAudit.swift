@@ -21,7 +21,7 @@ enum CompatibilityAudit {
                     rows.append(["application": id, "foreground": String(NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier), "version": app.bundleURL.flatMap { Bundle(url: $0)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String } ?? "unknown",
                         "os": ProcessInfo.processInfo.operatingSystemVersionString,
                         "time": ISO8601DateFormatter().string(from: Date()), "placement": result.reason,
-                        "frame": frame, "actions": result.snapshot?.actions.map(\.rawValue).sorted().joined(separator: ",") ?? "none"])
+                        "layout": await engine.auditLayout(), "frame": frame, "actions": result.snapshot?.actions.map(\.rawValue).sorted().joined(separator: ",") ?? "none"])
                     if let data = try? JSONSerialization.data(withJSONObject: rows, options: [.prettyPrinted, .sortedKeys]) {
                         try? data.write(to: directory.appendingPathComponent("compatibility.json"), options: .atomic)
                     }

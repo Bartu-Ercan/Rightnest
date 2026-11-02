@@ -9,6 +9,15 @@ public enum Placement {
         (isLayoutContainer ? rect : rect.insetBy(dx: -5, dy: -5)).intersects(candidate)
     }
 
+    /// Prefer the far right, then search left within the right half only.
+    public static func candidates(window: CGRect, rowY: CGFloat) -> [CGRect] {
+        guard let first = candidate(window: window, rowY: rowY, obstacles: [], boundsKnown: true) else { return [] }
+        let lower = window.midX
+        return stride(from: first.minX, through: lower, by: -18).map {
+            CGRect(x: $0, y: first.minY, width: width, height: height)
+        }
+    }
+
     // All rectangles use AX screen coordinates (origin at the main screen's top left).
     // Caller must supply complete, trustworthy obstacle data; empty AX data is not proof of safety.
     public static func candidate(window: CGRect, rowY: CGFloat, obstacles: [CGRect],

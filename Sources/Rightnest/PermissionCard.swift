@@ -27,7 +27,7 @@ struct PermissionCard: View {
                 Text(L("Permission detected. Try a TextEdit document next. The original left-side controls stay in place."))
                     .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 Button(L("Try in TextEdit")) { model.openTextEdit() }.buttonStyle(.borderedProminent)
-                Text(L("Preview support: TextEdit only. If the title bar is occupied or uncertain, controls stay hidden."))
+                Text(L("Preview support: TextEdit, Safari and Finder. If the title bar is occupied or uncertain, controls stay hidden."))
                     .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             } else {
                 Text(L("Rightnest needs macOS permission to close, minimize and resize another app’s window. macOS grants broad control; Rightnest uses it for window controls and does not send window data to a server."))
