@@ -210,6 +210,7 @@ enum TextEditVerification {
             guard AXIsProcessTrusted() else { throw Failure(message: "Accessibility permission missing") }
             report["permission"] = "granted"
             report["os"] = ProcessInfo.processInfo.operatingSystemVersionString
+            report["sameBundleInstances"] = NSWorkspace.shared.runningApplications.filter { $0.bundleIdentifier == Bundle.main.bundleIdentifier }.map { String($0.processIdentifier) }.joined(separator: ",")
             report["build"] = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown"
             report["application"] = fixtureApplicationID
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

@@ -4,9 +4,9 @@ Root: `~/Desktop/vibecoding/Rightnest`. Rightnest / A Corner identity. Native Sw
 
 ## Current state (2026-11-04)
 
-- Branch: `codex/feasibility`. Latest engine checkpoint c259556 (CI 41723353453 passed); SettingsView-only working changes follow. Check `git status` before editing.
+- Branch: `codex/feasibility`. Latest source 11d03e0; engine is c259556 (CI 41723353453 passed). SettingsView-only changes rendered/AX-verified; final CI is pending. Check `git status` before editing.
 - Published version is still **Preview 4 / build 5**: https://github.com/Bartu-Ercan/Rightnest/releases/tag/v0.1.0-preview.4. Preview 5 has NOT been uploaded or approved.
-- Installed `~/Applications/Rightnest.app` is being replaced with **optimized DEBUG instrumentation / build 6** for browser testing. Never distribute this measurement copy. Rebuild --release for delivery; public Preview 5 remains gated.
+- Installed `~/Applications/Rightnest.app` is **optimized DEBUG instrumentation / build 6**, source 11d03e0, running the Chrome browser verifier. Never distribute this measurement copy. Rebuild --release for delivery; public Preview 5 remains gated.
 - `dist/Rightnest-0.1.0-preview-arm64.dmg` is the separately rebuilt production-configuration candidate (c259556). Package image/signature/arm64/debug-entrypoint exclusion/checksum passed. Earlier candidate read-only mount/icon/Applications-link/build checks passed; repeat mount check after final changes. No candidate browser-download/clean-user proof or public checksum-download check exists.
 - Current accepted scope/gates: [browser-stability-plan.md](browser-stability-plan.md). Original broader plan remains incomplete: [plan-audit.md](plan-audit.md).
 
@@ -55,3 +55,11 @@ User approved a Safari/Chrome test interval in this chat. Use only separately pr
 Earlier Preview 4 detailed evidence and limitations remain in validation.md / compatibility.md. Earlier WhatsApp evidence is visibility only (42 consecutive samples /51s at1072×600); no chat-window actions. Blender untested/not installed. App eligibility never means verified compatibility. Keep all project assets, code, scripts and decisions in this root.
 
 After reinstalling/restarting Rightnest, reclaim it through `cua.getApp` before interacting; old bindings can become inactive. Use fresh full AX snapshots when an open menu is missed by diff output; use exposed Cancel actions.
+
+FAILED before observation: `.build/verify-p5-chrome-final1800` / --stability-seconds 1800, source 11d03e0 optimized DEBUG, engine c259556. Started after final settings review; prepared single-tab Chrome Guest local stability fixture. Do not use CUA/app activation during this session. Read progress/result files only. No completed 30-minute pass yet. Next Safari needs its own uninterrupted 1800s session.
+
+Chrome final1800 failed before observation/actions: "Control panel did not appear", foreground Chrome, granted permission, repeatedly measured native tab spacer but No safe titlebar or outside space. No 1800s session is currently running. Working DEBUG diagnostic now records the first rejected native candidate and AX owner/role. Next: compile/install optimized diagnostic and run a short owned Chrome fixture; inspect precise rejection before changing safety logic.
+
+Diagnostic retry `.build/verify-p5-chrome-rejection` unexpectedly PASSED 30s /287 visible samples and all actions with no behavior change (only DEBUG rejection logging added). Therefore the preceding NoSafe rejection is intermittent and not yet explained. Do not add a guessed Chrome exception. DEBUG now retains up to 20 changed rejection records and records same-bundle process IDs at test startup. Next clean Guest 1800s attempt must capture any failure owner/role.
+
+ACTIVE NOW (replacement for failed final1800): `.build/verify-p5-chrome-traced1800`, optimized DEBUG, engine c259556 / SettingsView 11d03e0 plus DEBUG-only rejection history. Single same-bundle process 44758 confirmed at startup. Geometry benchmark PASSED: 50 samples p95 201.6ms. Twenty synthetic cycles/1800s observation still running. Do not use CUA/app activation or reinstall. Earlier final1800 remains a failure; no safety exception was added. Latest DEBUG source retains 20 changed rejection records with native candidate/AX owner bundle/role, to diagnose any intermittent failure.

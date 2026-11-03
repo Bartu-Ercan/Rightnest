@@ -46,6 +46,7 @@ final class AccessibilityClient {
     private(set) var placementIssue = "Unverified title bar"
     #if DEBUG
     private var surfaceDiagnostic = ""
+    private(set) var placementDiagnostic = ""
     private(set) var focusDiagnostic = ""
     #endif
     func value(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
@@ -169,7 +170,7 @@ final class AccessibilityClient {
         surfaceSnapshot = nil; surfaceSnapshotLoaded = false; observedOcclusions.removeAll()
         ownPanelOcclusion = false
         #if DEBUG
-        surfaceDiagnostic = ""
+        surfaceDiagnostic = ""; placementDiagnostic = ""
         #endif
         let now = ProcessInfo.processInfo.systemUptime
         let deadline = now+0.4
@@ -190,8 +191,12 @@ final class AccessibilityClient {
         var ideal = native.first
         func nativeClear(_ candidate: CGRect) -> Bool {
             guard let layout, !observedOcclusions.contains(where: { $0.intersects(candidate) }) else { return false }
-            return verifiedPlacement(target, candidate: candidate, overlayNumber: overlayNumber, deadline: deadline,
+            let verified = verifiedPlacement(target, candidate: candidate, overlayNumber: overlayNumber, deadline: deadline,
                 backgrounds: layout.backgrounds, toolbarFrames: layout.toolbars, navigationSpacers: layout.spacers) != nil
+            #if DEBUG
+            if !verified && placementDiagnostic.isEmpty { placementDiagnostic = "rejected " + NSStringFromRect(candidate) + " " + placementIssue + " " + surfaceDiagnostic }
+            #endif
+            return verified
         }
         func clear(_ candidate: CGRect) -> Bool {
             if native.contains(candidate) { return nativeClear(candidate) }
@@ -327,7 +332,7 @@ final class AccessibilityClient {
                 }
                 guard pid == target.pid else {
                     #if DEBUG
-                    surfaceDiagnostic = "hit pid \(pid), role " + (value(hit, kAXRoleAttribute) as? String ?? "unknown")
+                    surfaceDiagnostic = "hit pid \(pid), bundle " + (NSRunningApplication(processIdentifier: pid)?.bundleIdentifier ?? "unknown") + ", role " + (value(hit, kAXRoleAttribute) as? String ?? "unknown")
                     #endif
                     if pid != ProcessInfo.processInfo.processIdentifier {
                         let covering = (value(hit, kAXRoleAttribute) as? String) == kAXWindowRole ? hit : element(hit, kAXWindowAttribute)

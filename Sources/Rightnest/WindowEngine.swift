@@ -33,8 +33,10 @@ actor WindowEngine {
     private var electronPreparation = ElectronPreparation()
     #if DEBUG
     private var trace: [String] = []
+    private var rejectionHistory: [String] = []
+    private var lastRejection = ""
     func verificationTrace() -> [String] { trace }
-    func auditLayout() -> String { client.layoutDiagnostic + "\n" + client.focusDiagnostic }
+    func auditLayout() -> String { client.layoutDiagnostic + "\n" + client.focusDiagnostic + "\n" + client.placementDiagnostic + "\nRecent rejections:\n" + rejectionHistory.joined(separator: "\n") }
     #endif
     private struct Saved {
         let pid: pid_t
@@ -98,6 +100,13 @@ actor WindowEngine {
         let pointerInside = await pointerQuery?() ?? false
         guard !Task.isCancelled, token == revision else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
         let now = ProcessInfo.processInfo.systemUptime
+        #if DEBUG
+        if !client.placementDiagnostic.isEmpty && client.placementDiagnostic != lastRejection {
+            rejectionHistory.append(String(now) + " " + client.placementDiagnostic)
+            if rejectionHistory.count > 20 { rejectionHistory.removeFirst() }
+        }
+        lastRejection = client.placementDiagnostic
+        #endif
         let rect = reflow.update(decision, now: now, pointerInside: pointerInside)
         let retry = reflow.retryDelay(now: now, experimental: context?.experimental ?? true)
         guard let rect else { return Inspection(snapshot: nil, reason: client.placementIssue, retryAfter: retry) }
