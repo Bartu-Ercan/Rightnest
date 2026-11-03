@@ -17,6 +17,8 @@ jobs:
         run: swift run PlacementChecks
       - name: Native hover checks (offscreen)
         run: ./script/check_hover.sh
+      - name: External CPU monitor (compile only)
+        run: swiftc -swift-version 6 script/measure_service_cpu.swift -o .build/ServiceCPU
       - name: Release bundle
         run: ./script/build_and_run.sh --release
       - name: Validate bundle

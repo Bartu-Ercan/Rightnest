@@ -66,6 +66,15 @@ The JSON report is written under that directory. It exercises real proxy NSButto
 
 For a browser stress check, load [Checks/Fixtures/window-stability.html](Checks/Fixtures/window-stability.html) in a new single-tab Safari window or Chrome Guest window, then invoke the matching debug verifier with that fixture path. It observes visibility for 30 seconds before actions; keep that window in front. Add `--stability-seconds 1800` for the candidate long-session verifier: 50 geometry samples, 20 synthetic occlusion cycles, cumulative CPU windows and a total 30-minute session before actions. Use a freshly loaded fixture; its title changes at 5 Hz for 180 seconds, then becomes idle. `progress.json` reports the running phase. Synthetic occlusions do not substitute for actual volume/brightness HUD tests. A failed acceptance metric remains a failed gate even if the final action sequence succeeds. The verifier waits for 500 ms of stable preparation geometry before observing the window. For normal-service CPU, load the static `Checks/Fixtures/window-idle.html` and use `--measure-idle <report-directory> <bundle-id> <fixture-path>`: 30-second warmup, then five 60-second cumulative CPU windows; no window actions or 10 Hz AX polling. This separate measurement does not erase failed instrumented measurements. Use `--profile-build` for optimized instrumentation when comparing against the normal-service CPU target; record the configuration. This local profiling bundle contains test entrypoints and must not be distributed. Packaging rebuilds the release configuration and rejects those entrypoints. Multi-tab browser windows are rejected. Native AXDocument fixture shortcuts are restricted to TextEdit/Preview; other app types can require an explicit safe fixture verifier. A separate macOS Space does not isolate a shared app session; use an actually isolated test account/environment for uninterrupted verification.
 
+For an actual release-service measurement without in-process instrumentation, first install/launch the release and keep the static Chrome Guest fixture in front with its controls visible, then run:
+
+```sh
+swiftc -swift-version 6 script/measure_service_cpu.swift -o .build/ServiceCPU
+.build/ServiceCPU "$(pgrep -x Rightnest)" com.google.Chrome "$PWD/.build/service-cpu"
+```
+
+The finite read-only monitor uses cumulative process CPU after warmup, checks the foreground app and visible panel, and records five 60-second windows. It never activates apps or invokes window actions; foreground/panel changes invalidate the run.
+
 ## Contribute
 
 [Architecture and decisions](docs/decisions.md) · [Design](docs/design.md) · [Contributing](CONTRIBUTING.md) · [Release process](docs/RELEASE.md) · [Changelog](CHANGELOG.md)
