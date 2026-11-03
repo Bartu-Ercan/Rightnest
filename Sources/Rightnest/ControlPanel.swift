@@ -36,6 +36,9 @@ final class ControlPanel: NSPanel {
         for button in buttons.values { (button as? ControlButton)?.clearHover() }
         super.orderOut(sender)
     }
+    var pointerBusy: Bool {
+        isVisible && (frame.contains(NSEvent.mouseLocation) || buttons.values.contains { ($0 as? ControlButton)?.trackingPress == true })
+    }
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
     func show(at frame: CGRect, enabled: Set<WindowAction>, restoring: Bool = false, action: @escaping (WindowAction) -> Void) {
@@ -120,6 +123,12 @@ final class ControlStrip: NSView {
 private final class ControlButton: NSButton {
     var hoverColor: NSColor = .controlAccentColor
     private var hovered = false
+    private(set) var trackingPress = false
+    override func mouseDown(with event: NSEvent) {
+        trackingPress = true
+        defer { trackingPress = false }
+        super.mouseDown(with: event)
+    }
     override var isEnabled: Bool { didSet { updateHoverAppearance() } }
     override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); updateHoverAppearance() }
     func clearHover() { hovered = false; updateHoverAppearance() }

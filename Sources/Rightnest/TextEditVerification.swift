@@ -2,16 +2,17 @@
 import AppKit
 import ApplicationServices
 import RightnestCore
+import Darwin
 
 /// Explicit developer-only verification of a disposable file, never a user's document.
 @MainActor
 enum TextEditVerification {
     struct Failure: Error { let message: String }
-    static func wait(_ message: String, seconds: Double = 8, until predicate: () -> Bool) async throws {
+    static func wait(_ message: String, seconds: Double = 8, pollMilliseconds: Int = 100, until predicate: () -> Bool) async throws {
         let end = Date().addingTimeInterval(seconds)
         while Date() < end {
             if predicate() { return }
-            try await Task.sleep(for: .milliseconds(100))
+            try await Task.sleep(for: .milliseconds(pollMilliseconds))
         }
         throw Failure(message: message)
     }
@@ -41,6 +42,122 @@ enum TextEditVerification {
         visit(window, depth: 0)
         return matching == 1 && other == 0
     }
+    private static func cpuSeconds() -> Double {
+        var usage = rusage()
+        guard getrusage(RUSAGE_SELF, &usage) == 0 else { return .nan }
+        return Double(usage.ru_utime.tv_sec+usage.ru_stime.tv_sec) + Double(usage.ru_utime.tv_usec+usage.ru_stime.tv_usec)/1_000_000
+    }
+    private static func percentile95(_ values: [Double]) -> Double {
+        let sorted = values.sorted()
+        return sorted[max(0, Int(ceil(Double(sorted.count)*0.95))-1)]
+    }
+    private static func saveProgress(_ report: [String: String], directory: URL) {
+        if let data = try? JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]) {
+            try? data.write(to: directory.appendingPathComponent("progress.json"), options: .atomic)
+        }
+    }
+    private static func observe(model: AppModel, target: WindowTarget, fixture: URL, applicationID: String,
+                                directory: URL, seconds: Int, report: inout [String: String], client: AccessibilityClient) async throws {
+        let started = ProcessInfo.processInfo.systemUptime
+        var samples = 0
+        func verifyOwner() throws {
+            guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.pid,
+                  let focused = client.focusedWindow(pid: target.pid), CFEqual(focused, target.window) else {
+                throw Failure(message: "Focus changed during stability observation")
+            }
+        }
+        func verifyWritableFixture() throws {
+            try verifyOwner()
+            guard matchesFixture(target.window, fixture: fixture, client: client,
+                nativeDocument: ["com.apple.TextEdit", "com.apple.Preview"].contains(applicationID)) else {
+                throw Failure(message: "Disposable fixture identity changed")
+            }
+        }
+        if seconds > 30 {
+            report["phase"] = "geometry benchmark"; saveProgress(report, directory: directory)
+            guard let original = client.frame(target.window), let home = model.verificationPanelFrame else { throw Failure(message: "Fixture geometry missing") }
+            var appearance: [Double] = []
+            for i in 0..<50 {
+                try verifyWritableFixture()
+                let x = original.minX + (i.isMultiple(of: 2) ? 20 : 0)
+                let begin = ProcessInfo.processInfo.systemUptime
+                guard client.setPosition(CGPoint(x: x, y: original.minY), on: target.window) else { throw Failure(message: "Fixture move rejected") }
+                try await wait("Panel did not follow settled fixture", pollMilliseconds: 10) {
+                    guard let panel = model.verificationPanelFrame, let frame = client.frame(target.window) else { return false }
+                    return abs(frame.minX-x) <= 2 && abs(panel.minX-(home.minX+x-original.minX)) <= 2
+                }
+                appearance.append((ProcessInfo.processInfo.systemUptime-begin)*1000)
+            }
+            report["appearanceP95Milliseconds"] = String(percentile95(appearance))
+            report["appearanceSamples"] = "50"
+            if percentile95(appearance) > 300 { report["appearanceGate"] = "failed" }
+            else { report["appearanceGate"] = "passed" }
+            guard let home = model.verificationPanelFrame, let primary = NSScreen.screens.first else { throw Failure(message: "Home placement missing") }
+            let hudAX = home.insetBy(dx: -8, dy: -5)
+            let hud = NSPanel(contentRect: WindowGeometry.flip(hudAX, primaryTop: primary.frame.maxY),
+                styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+            hud.level = NSWindow.Level(rawValue: NSWindow.Level.floating.rawValue+1)
+            hud.hidesOnDeactivate = false; hud.isReleasedWhenClosed = false; hud.isOpaque = true; hud.backgroundColor = .controlAccentColor
+            hud.collectionBehavior = [.canJoinAllSpaces, .ignoresCycle]
+            hud.contentView = NSTextField(labelWithString: "Rightnest collision fixture")
+            defer { hud.orderOut(nil); hud.close() }
+            var returns: [Double] = []
+            report["phase"] = "synthetic HUD benchmark"; saveProgress(report, directory: directory)
+            for _ in 0..<20 {
+                try verifyOwner()
+                hud.orderFrontRegardless()
+                try await wait("Controls overlapped synthetic HUD", pollMilliseconds: 10) {
+                    model.verificationPanelFrame.map { !$0.intersects(hudAX) } ?? false
+                }
+                let cleared = ProcessInfo.processInfo.systemUptime
+                hud.orderOut(nil)
+                try await wait("Controls did not return to original corner", pollMilliseconds: 10) { model.verificationPanelFrame == home }
+                returns.append((ProcessInfo.processInfo.systemUptime-cleared)*1000)
+            }
+            report["syntheticHUDCycles"] = "20"
+            report["HUDReturnP95Milliseconds"] = String(percentile95(returns))
+            report["HUDReturnMaximumMilliseconds"] = String(returns.max() ?? 0)
+            report["HUDReturnGate"] = (returns.max() ?? .infinity) <= 500 ? "passed" : "failed"
+            report["systemHUDCycles"] = "not yet verified; synthetic panels are not OS volume indicators"
+        }
+        var previous = ProcessInfo.processInfo.systemUptime
+        var cpuStart = cpuSeconds()
+        var stressCPU: Double?
+        var idleCPU: [Double] = []
+        while ProcessInfo.processInfo.systemUptime-started < Double(seconds) {
+            try await Task.sleep(for: .milliseconds(100))
+            try verifyOwner()
+            guard model.verificationPanelVisible else { throw Failure(message: "Panel disappeared during stable-window observation") }
+            samples += 1
+            let now = ProcessInfo.processInfo.systemUptime
+            let elapsed = now-started
+            if seconds > 30 {
+                if elapsed < 30 { previous = now; cpuStart = cpuSeconds() }
+                else if stressCPU == nil && now-previous >= 60 {
+                    stressCPU = 100*(cpuSeconds()-cpuStart)/(now-previous)
+                    report["stressCPUPercent"] = String(stressCPU ?? .nan)
+                    report["stressCPUGate"] = (stressCPU ?? .infinity) <= 5 ? "passed" : "failed"
+                    previous = now; cpuStart = cpuSeconds()
+                } else if elapsed < 200 && stressCPU != nil { previous = now; cpuStart = cpuSeconds() }
+                else if elapsed >= 200 && idleCPU.count < 5 && now-previous >= 60 {
+                    idleCPU.append(100*(cpuSeconds()-cpuStart)/(now-previous))
+                    previous = now; cpuStart = cpuSeconds()
+                    report["idleCPUWindows"] = String(idleCPU.count)
+                    let average = idleCPU.reduce(0,+)/Double(idleCPU.count)
+                    report["idleCPUPercent"] = String(average)
+                    report["idleCPUGate"] = idleCPU.count == 5 && average < 1 ? "passed" : "pending or failed"
+                }
+            }
+            if samples.isMultiple(of: 50) {
+                report["phase"] = elapsed < 100 ? "stress" : elapsed < 500 ? "idle measurement" : "soak"
+                report["elapsedSeconds"] = String(Int(elapsed)); report["visibleSamples"] = String(samples)
+                saveProgress(report, directory: directory)
+            }
+        }
+        report["stability"] = "passed: \(samples) visible samples; total session \(seconds) seconds including declared geometry/HUD phases"
+        report["phase"] = "window actions"; saveProgress(report, directory: directory)
+    }
+
     static func run(model: AppModel, directory: URL, browserFixture: URL? = nil, fixtureApplicationID: String = "com.apple.Safari") async {
         let client = AccessibilityClient()
         var report: [String: String] = [:]
@@ -115,13 +232,19 @@ enum TextEditVerification {
             try await wait("Control panel did not appear") { model.verificationPanelVisible }
             report["panel"] = "visible"
             if browserFixture != nil {
-                for _ in 0..<300 {
-                    try await Task.sleep(for: .milliseconds(100))
-                    guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.pid else { throw Failure(message: "Focus changed during stability observation") }
-                    guard model.verificationPanelVisible else { throw Failure(message: "Panel disappeared during stable-window observation") }
+                let argument = CommandLine.arguments.firstIndex(of: "--stability-seconds")
+                var seconds = 30
+                if let argument {
+                    guard CommandLine.arguments.indices.contains(argument+1),
+                          let supplied = Int(CommandLine.arguments[argument+1]), (30...1800).contains(supplied) else {
+                        throw Failure(message: "Stability duration must be between 30 and 1800 seconds")
+                    }
+                    seconds = supplied
                 }
-                report["stability"] = "passed: 300 visible samples over 30 seconds"
+                try await observe(model: model, target: target, fixture: fixture, applicationID: applicationID,
+                    directory: directory, seconds: seconds, report: &report, client: client)
             }
+            guard matchesFixture(target.window, fixture: fixture, client: client, finderFixture: applicationID == "com.apple.finder", nativeDocument: ["com.apple.TextEdit", "com.apple.Preview"].contains(applicationID)) else { throw Failure(message: "Fixture changed before actions") }
             guard model.invokeVerificationAction(.minimize) else { throw Failure(message: "Minimize button unavailable") }
             report["minimizeDispatchStatus"] = model.status
             report["minimizePlacementIssue"] = client.placementIssue

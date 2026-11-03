@@ -13,6 +13,13 @@ struct WindowSnapshot: Sendable {
 struct Inspection: Sendable {
     let snapshot: WindowSnapshot?
     let reason: String
+    var retryAfter: TimeInterval = 1
+}
+struct ApplicationInspectionContext: Sendable {
+    let session: String
+    let electron: Bool
+    let experimental: Bool
+    var allowActivation = true
 }
 
 /// AX objects never leave this actor. UI work remains on MainActor; queries are
@@ -21,11 +28,13 @@ actor WindowEngine {
     private let client = AccessibilityClient()
     private var target: WindowTarget?
     private var token: UInt64 = 0
-    private var lastSnapshot: WindowSnapshot?
+    private var capabilityCheckedAt = -Double.infinity
+    private var reflow = ReflowState()
+    private var electronPreparation = ElectronPreparation()
     #if DEBUG
     private var trace: [String] = []
     func verificationTrace() -> [String] { trace }
-    func auditLayout() -> String { client.layoutDiagnostic }
+    func auditLayout() -> String { client.layoutDiagnostic + "\n" + client.focusDiagnostic }
     #endif
     private struct Saved {
         let pid: pid_t
@@ -34,7 +43,9 @@ actor WindowEngine {
     }
     private var saved: [Saved] = []
 
-    func inspect(pid: pid_t, overlayNumber: Int?, requireFocus: Bool = true, screens: [CGRect] = []) async -> Inspection {
+    func inspect(pid: pid_t, overlayNumber: Int?, requireFocus: Bool = true, screens: [CGRect] = [], forceLayout: Bool = false,
+                 resetPlacement: Bool = false, context: ApplicationInspectionContext? = nil,
+                 pointerQuery: (@MainActor @Sendable () -> Bool)? = nil) async -> Inspection {
         guard !Task.isCancelled, AXIsProcessTrusted() else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
         if requireFocus {
             var confirmed = false
@@ -48,17 +59,48 @@ actor WindowEngine {
             }
             guard confirmed, !Task.isCancelled else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
         }
-        guard let next = client.target(pid: pid) else { return Inspection(snapshot: nil, reason: "Unsupported window state") }
+        let reuseCapabilities = !forceLayout && !resetPlacement && ProcessInfo.processInfo.systemUptime-capabilityCheckedAt < 1
+        guard let next = client.target(pid: pid, cached: reuseCapabilities ? target : nil) else {
+            _ = reflow.update(PlacementDecision(ideal: nil, available: nil, currentIsClear: false),
+                now: ProcessInfo.processInfo.systemUptime, pointerInside: false)
+            return Inspection(snapshot: nil, reason: "Unsupported window state",
+                retryAfter: reflow.retryDelay(now: ProcessInfo.processInfo.systemUptime, experimental: context?.experimental ?? true))
+        }
+        guard !Task.isCancelled else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
+        let geometryChanged = target?.frame != next.frame
+        if !reuseCapabilities || geometryChanged { capabilityCheckedAt = ProcessInfo.processInfo.systemUptime }
+        if resetPlacement { reflow.reset(); client.invalidateLayout() }
         if let old = target {
-            if old.pid != pid || !CFEqual(old.window, next.window) { token &+= 1 }
+            if old.pid != pid || !CFEqual(old.window, next.window) || old.frame != next.frame {
+                token &+= 1; reflow.reset(); client.invalidateLayout()
+            }
         } else { token &+= 1 }
         target = next
         saved.removeAll { $0.pid == pid && CFEqual($0.window, next.window) && !WindowGeometry.close($0.record.fitted, next.frame) }
-        let preferred: CGRect?
-        if let lastSnapshot, lastSnapshot.token == token, lastSnapshot.pid == pid,
-           WindowGeometry.close(lastSnapshot.frame, next.frame) { preferred = lastSnapshot.placement }
-        else { preferred = nil }
-        guard let rect = client.placement(next, overlayNumber: overlayNumber, screens: screens, preferred: preferred) else { return Inspection(snapshot: nil, reason: client.placementIssue) }
+        let revision = token
+        var decision = client.placementDecision(next, overlayNumber: overlayNumber, screens: screens,
+            current: reflow.current, forceLayout: forceLayout, electron: context?.electron ?? false)
+        if let context, context.electron,
+           electronPreparation.shouldActivate(session: context.session, enabled: context.allowActivation, incomplete: client.incompleteTree),
+           client.activateElectronAccessibility(pid: pid) {
+            for delay in [100, 200] {
+                try? await Task.sleep(for: .milliseconds(delay))
+                guard !Task.isCancelled, token == revision, AXIsProcessTrusted(),
+                      let fresh = client.target(pid: pid), CFEqual(fresh.window, next.window), fresh.frame == next.frame,
+                      !requireFocus || client.focusedPID() == pid else {
+                    return Inspection(snapshot: nil, reason: "Window control permission or focus changed")
+                }
+                decision = client.placementDecision(fresh, overlayNumber: overlayNumber, screens: screens,
+                    current: reflow.current, forceLayout: true, electron: true)
+                if !client.incompleteTree { break }
+            }
+        }
+        let pointerInside = await pointerQuery?() ?? false
+        guard !Task.isCancelled, token == revision else { return Inspection(snapshot: nil, reason: "Window control permission or focus changed") }
+        let now = ProcessInfo.processInfo.systemUptime
+        let rect = reflow.update(decision, now: now, pointerInside: pointerInside)
+        let retry = reflow.retryDelay(now: now, experimental: context?.experimental ?? true)
+        guard let rect else { return Inspection(snapshot: nil, reason: client.placementIssue, retryAfter: retry) }
         var actions: Set<WindowAction> = []
         if next.close != nil { actions.insert(.close) }
         if next.minimize != nil { actions.insert(.minimize) }
@@ -66,8 +108,7 @@ actor WindowEngine {
         guard !actions.isEmpty else { return Inspection(snapshot: nil, reason: "No supported window actions") }
         let snapshot = WindowSnapshot(token: token, pid: pid, frame: next.frame, placement: rect, actions: actions,
             restoring: saved.contains { $0.pid == pid && CFEqual($0.window, next.window) })
-        lastSnapshot = snapshot
-        return Inspection(snapshot: snapshot, reason: "Controls active")
+        return Inspection(snapshot: snapshot, reason: "Controls active", retryAfter: retry)
     }
 
     func perform(_ action: WindowAction, snapshot: WindowSnapshot, screens: [CGRect]) async -> String {
@@ -220,5 +261,5 @@ actor WindowEngine {
         }
         return nil
     }
-    func invalidate() { token &+= 1; target = nil }
+    func invalidate() { token &+= 1; target = nil; reflow.reset(); client.invalidateLayout() }
 }

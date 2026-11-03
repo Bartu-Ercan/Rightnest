@@ -36,6 +36,11 @@ public enum SurfaceOrder {
     public static func targetIsDirectlyBelow(_ surfaces: [Surface], overlayNumber: Int, ownPID: Int32,
                                             targetPID: Int32, targetFrame: CGRect, candidate: CGRect) -> Bool {
         guard let overlay = surfaces.firstIndex(where: { $0.number == overlayNumber && $0.pid == ownPID }) else { return false }
+        // A point owned by Rightnest may be a different Rightnest panel above
+        // the overlay, not one of the overlay's controls.
+        guard !surfaces.prefix(overlay).contains(where: {
+            $0.pid == ownPID && $0.alpha > 0 && $0.bounds.intersects(candidate)
+        }) else { return false }
         for item in surfaces.dropFirst(overlay + 1) {
             guard WindowGeometry.valid(item.bounds) else { return false }
             guard item.alpha > 0, item.bounds.intersects(candidate) else { continue }

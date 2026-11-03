@@ -7,6 +7,9 @@ func L(_ english: String) -> String {
     return turkish ? translations[message] ?? message : message
 }
 private let translations: [String: String] = [
+    "Priority support": "Öncelikli destek", "System applications": "Sistem uygulamaları",
+    "Experimental applications": "Deneysel uygulamalar", "Last check": "Son kontrol",
+    "Not checked in this session": "Bu oturumda henüz kontrol edilmedi",
     "Overview": "Genel bakış", "On your Mac. Only.": "Yalnızca Mac’inizde.",
     "Choose where Rightnest lends a hand.": "Rightnest’un çalışacağı uygulamaları seçin.",
     "Rightnest is running": "Rightnest çalışıyor", "Everyday use": "Günlük kullanım",

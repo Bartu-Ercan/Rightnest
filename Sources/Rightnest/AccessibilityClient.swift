@@ -16,10 +16,35 @@ final class AccessibilityClient {
     private var surfaceSnapshot: [Surface]?
     private var surfaceSnapshotLoaded = false
     private var observedOcclusions: [CGRect] = []
+    private struct Layout {
+        let candidates: [CGRect]
+        let obstacles: [CGRect]
+        let backgrounds: [AXUIElement]
+        let toolbars: [CGRect]
+        let spacers: [CGRect]
+    }
+    private struct LayoutCache {
+        let window: AXUIElement
+        let frame: CGRect
+        let electron: Bool
+        let created: TimeInterval
+        let layout: Layout?
+        let issue: String
+    }
+    private var cachedLayout: LayoutCache?
+    private(set) var incompleteTree = false
+    func invalidateLayout() { cachedLayout = nil }
+    func activateElectronAccessibility(pid: pid_t) -> Bool {
+        let app = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(app, 0.08)
+        if value(app, "AXManualAccessibility") as? Bool == true { return true }
+        return AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue) == .success
+    }
     private(set) var ownPanelOcclusion = false
     private(set) var placementIssue = "Unverified title bar"
     #if DEBUG
     private var surfaceDiagnostic = ""
+    private(set) var focusDiagnostic = ""
     #endif
     func value(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
         var result: CFTypeRef?
@@ -59,7 +84,7 @@ final class AccessibilityClient {
         AXUIElementSetMessagingTimeout(app, 0.08)
         return element(app, kAXFocusedWindowAttribute)
     }
-    func target(pid: pid_t) -> WindowTarget? {
+    func target(pid: pid_t, cached: WindowTarget? = nil) -> WindowTarget? {
         guard let window = focusedWindow(pid: pid),
               (value(window, kAXSubroleAttribute) as? String) == kAXStandardWindowSubrole,
               (value(window, kAXMinimizedAttribute) as? Bool) == false,
@@ -67,6 +92,7 @@ final class AccessibilityClient {
               let frame = frame(window) else { return nil }
         guard let children = value(window, kAXChildrenAttribute) as? [AXUIElement],
               !children.contains(where: { (value($0, kAXRoleAttribute) as? String) == kAXSheetRole }) else { return nil }
+        if let cached, cached.pid == pid, cached.frame == frame, CFEqual(cached.window, window) { return cached }
         return WindowTarget(pid: pid, window: window, frame: frame,
             close: pressable(element(window, kAXCloseButtonAttribute)),
             minimize: pressable(element(window, kAXMinimizeButtonAttribute)),
@@ -131,35 +157,70 @@ final class AccessibilityClient {
     }
 
     func placement(_ target: WindowTarget, overlayNumber: Int? = nil, screens: [CGRect] = [], preferred: CGRect? = nil) -> CGRect? {
+        let decision = placementDecision(target, overlayNumber: overlayNumber, screens: screens,
+            current: preferred, forceLayout: true, electron: cachedLayout?.electron ?? false)
+        return decision.currentIsClear ? preferred : decision.available
+    }
+
+    func placementDecision(_ target: WindowTarget, overlayNumber: Int?, screens: [CGRect], current: CGRect?,
+                           forceLayout: Bool, electron: Bool) -> PlacementDecision {
         surfaceSnapshot = nil; surfaceSnapshotLoaded = false; observedOcclusions.removeAll()
+        ownPanelOcclusion = false
         #if DEBUG
         surfaceDiagnostic = ""
         #endif
-        if let titlebar = titlebarPlacement(target, overlayNumber: overlayNumber, preferred: preferred) { return titlebar }
-        layoutDiagnostic += "\nTitlebar result: " + placementIssue
-        // An external shelf is allowed only in measured, vacant desktop space.
-        // It never covers app content when an inaccessible toolbar cannot be inspected.
+        let now = ProcessInfo.processInfo.systemUptime
+        let deadline = now+0.4
+        let layout: Layout?
+        if !forceLayout, let cached = cachedLayout, cached.frame == target.frame,
+           cached.electron == electron, CFEqual(cached.window, target.window), now-cached.created < 1 {
+            layout = cached.layout; placementIssue = cached.issue
+        } else {
+            cachedLayout = nil; incompleteTree = false
+            layout = makeLayout(target, electron: electron, deadline: deadline)
+            cachedLayout = LayoutCache(window: target.window, frame: target.frame, electron: electron,
+                created: now, layout: layout, issue: placementIssue)
+        }
         let outside = Placement.detachedCandidates(window: target.frame, visibleFrames: screens)
-        let orderedOutside = preferred.map { p in outside.filter { $0 == p } + outside.filter { $0 != p } } ?? outside
-        for candidate in orderedOutside {
-            if outsideSurfaceClear(candidate, overlayNumber: overlayNumber) {
-                placementIssue = "Controls outside window"
-                return candidate
+        let native = layout?.candidates.filter { candidate in
+            !(layout?.obstacles.contains { $0.intersects(candidate) } ?? true)
+        } ?? []
+        var ideal = native.first
+        func nativeClear(_ candidate: CGRect) -> Bool {
+            guard let layout, !observedOcclusions.contains(where: { $0.intersects(candidate) }) else { return false }
+            return verifiedPlacement(target, candidate: candidate, overlayNumber: overlayNumber, deadline: deadline,
+                backgrounds: layout.backgrounds, toolbarFrames: layout.toolbars, navigationSpacers: layout.spacers) != nil
+        }
+        func clear(_ candidate: CGRect) -> Bool {
+            if native.contains(candidate) { return nativeClear(candidate) }
+            return outside.contains(candidate) && outsideSurfaceClear(candidate, overlayNumber: overlayNumber)
+        }
+        let homeClear = ideal.map(clear) ?? false
+        let currentClear: Bool
+        if let current { currentClear = current == ideal ? homeClear : clear(current) }
+        else { currentClear = false }
+        var available = homeClear ? ideal : nil
+        if available == nil, currentClear { available = current }
+        if available == nil {
+            for candidate in native + outside where candidate != ideal && candidate != current {
+                guard ProcessInfo.processInfo.systemUptime < deadline else { placementIssue = "Inspection timed out"; break }
+                if clear(candidate) { available = candidate; break }
             }
         }
-        if !screens.isEmpty { placementIssue = "No safe titlebar or outside space" }
-        return nil
+        if ideal == nil { ideal = available }
+        if let available { placementIssue = target.frame.contains(available) ? "Controls active" : "Controls outside window" }
+        else if !screens.isEmpty { placementIssue = "No safe titlebar or outside space" }
+        return PlacementDecision(ideal: ideal, available: available, currentIsClear: currentClear)
     }
 
     // Inspect known layout containers; never infer that an unknown subtree is blank.
-    private func titlebarPlacement(_ target: WindowTarget, overlayNumber: Int? = nil, preferred: CGRect? = nil) -> CGRect? {
+    private func makeLayout(_ target: WindowTarget, electron: Bool, deadline: TimeInterval) -> Layout? {
         ownPanelOcclusion = false
         placementIssue = "Missing close-button geometry"
         guard let close = target.close, let closeFrame = frame(close) else { return nil }
         let choices = Placement.candidates(window: target.frame, rowY: closeFrame.midY - 13)
-        var candidates = preferred.map { p in choices.filter { $0 == p } + choices.filter { $0 != p } } ?? choices
+        var candidates = choices
         placementIssue = "Not enough room in title bar"
-        let deadline = ProcessInfo.processInfo.systemUptime + 0.4
         guard let first = candidates.first, let last = candidates.last else { return nil }
         var searchArea = choices.reduce(first.union(last)) { $0.union($1) }
         var obstacles: [CGRect] = []
@@ -171,7 +232,7 @@ final class AccessibilityClient {
         var descriptions: [String] = []
         defer { layoutDiagnostic = "window " + NSStringFromRect(target.frame) + " close " + NSStringFromRect(closeFrame) + " search " + NSStringFromRect(searchArea) + "\n" + descriptions.joined(separator: "\n") }
         var budget = 160
-        let containers = [kAXWindowRole, kAXToolbarRole, kAXGroupRole, kAXSplitGroupRole, kAXTabGroupRole]
+        let containers = [kAXWindowRole, kAXToolbarRole, kAXGroupRole, kAXSplitGroupRole, kAXTabGroupRole] + (electron ? ["AXWebArea", kAXScrollAreaRole] : [])
         func collect(_ node: AXUIElement, depth: Int) -> Bool {
             budget -= 1
             guard budget > 0, ProcessInfo.processInfo.systemUptime < deadline else { placementIssue = "Inspection limit reached"; return false }
@@ -188,8 +249,9 @@ final class AccessibilityClient {
             guard occupied.intersects(searchArea) else { return true }
             guard containers.contains(role) else { obstacles.append(occupied); descriptions.append(role + " " + NSStringFromRect(occupied)); return true }
             guard depth < 16 else { placementIssue = "Inspection limit reached"; return false }
-            guard let children = value(node, kAXChildrenAttribute) as? [AXUIElement] else { placementIssue = "Incomplete title bar hierarchy"; return false }
+            guard let children = value(node, kAXChildrenAttribute) as? [AXUIElement] else { incompleteTree = true; placementIssue = "Incomplete title bar hierarchy"; return false }
             if children.isEmpty {
+                if role == kAXGroupRole && rect.width >= target.frame.width*0.8 && rect.height >= target.frame.height*0.8 { incompleteTree = true }
                 let navigation = role == kAXGroupRole && navigationSpacer(node, window: target.frame)
                 if role == kAXGroupRole && (navigation || chromiumTabBackground(node, window: target.frame)) {
                     verifiedBackgrounds.append(node)
@@ -222,7 +284,7 @@ final class AccessibilityClient {
             let row = Placement.candidates(window: target.frame, rowY: context.spacer.midY-13)
                 .filter { context.spacer.contains($0) && barFrame.contains($0) }
             if let first = row.first {
-                candidates = preferred.map { p in row.filter { $0 == p } + row.filter { $0 != p } } ?? row
+                candidates = row
                 searchArea = row.reduce(first) { $0.union($1) }
                 findingNavigationRow = false
                 obstacles.removeAll(); verifiedBackgrounds.removeAll(); toolbarFrames.removeAll(); navigationSpacers.removeAll()
@@ -233,15 +295,8 @@ final class AccessibilityClient {
         #if DEBUG
         descriptions.append("collection ms " + String(Int((ProcessInfo.processInfo.systemUptime-deadline+0.4)*1000)))
         #endif
-        for candidate in candidates {
-            guard ProcessInfo.processInfo.systemUptime < deadline else { placementIssue = "Inspection timed out"; return nil }
-            guard !(obstacles + observedOcclusions).contains(where: { $0.intersects(candidate) }) else { placementIssue = "No clear space in right title bar"; continue }
-            if let rect = verifiedPlacement(target, candidate: candidate, overlayNumber: overlayNumber, deadline: deadline, backgrounds: verifiedBackgrounds, toolbarFrames: toolbarFrames, navigationSpacers: navigationSpacers) { return rect }
-            #if DEBUG
-            if descriptions.count < 16 { descriptions.append("candidate " + NSStringFromRect(candidate) + " rejected: " + placementIssue + " " + surfaceDiagnostic) }
-            #endif
-        }
-        return nil
+        return Layout(candidates: candidates, obstacles: obstacles,
+            backgrounds: verifiedBackgrounds, toolbars: toolbarFrames, spacers: navigationSpacers)
     }
     private func verifiedPlacement(_ target: WindowTarget, candidate: CGRect, overlayNumber: Int?, deadline: TimeInterval, backgrounds: [AXUIElement], toolbarFrames: [CGRect], navigationSpacers: [CGRect]) -> CGRect? {
         ownPanelOcclusion = false
@@ -309,7 +364,11 @@ final class AccessibilityClient {
         AXUIElementSetMessagingTimeout(system, 0.04)
         guard let app = element(system, kAXFocusedApplicationAttribute) else { return nil }
         var pid: pid_t = 0
-        return AXUIElementGetPid(app, &pid) == .success ? pid : nil
+        let status = AXUIElementGetPid(app, &pid)
+        #if DEBUG
+        focusDiagnostic = "AX focused pid \(pid), status \(status.rawValue)"
+        #endif
+        return status == .success ? pid : nil
     }
 
     // WindowServer ordering supplements AX hit tests while our exact overlay is

@@ -30,7 +30,22 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     private let observer = WindowObserver()
     private var inspectionTask: Task<Void, Never>?
     private var generation: UInt64 = 0
-    private var lastInspection = Date.distantPast
+    private var layoutDirty = true
+    private var resetPlacement = true
+    private var layoutRevision: UInt64 = 0
+    private var runtimeKinds: [String: Bool] = [:]
+    @Published private(set) var applicationStates: [String: String] = [:]
+    func inspectionContext(for app: NSRunningApplication, allowActivation: Bool = true) -> ApplicationInspectionContext {
+        let session = "\(app.processIdentifier):\(app.launchDate?.timeIntervalSince1970 ?? 0)"
+        let electron: Bool
+        if let cached = runtimeKinds[session] { electron = cached }
+        else {
+            electron = app.bundleURL.map { FileManager.default.fileExists(atPath: $0.appendingPathComponent("Contents/Frameworks/Electron Framework.framework").path) } ?? false
+            runtimeKinds[session] = electron
+        }
+        return ApplicationInspectionContext(session: session, electron: electron,
+            experimental: ApplicationSupport.group(for: app.bundleIdentifier ?? "") == .experimental, allowActivation: allowActivation)
+    }
     private var extraObservers: [NSObjectProtocol] = []
     private var welcome: NSWindow?
     private var demoOriginal: CGRect?
@@ -42,7 +57,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
         didSet { UserDefaults.standard.set(Array(disabledApplications), forKey: "disabledApplications"); invalidate() }
     }
     static let candidates = [("com.apple.TextEdit", "TextEdit"), ("com.apple.Preview", "Preview"),
-        ("com.apple.finder", "Finder"), ("com.apple.Safari", "Safari"), ("com.google.Chrome", "Chrome")]
+        ("com.apple.finder", "Finder"), ("com.apple.Safari", "Safari"), ("com.google.Chrome", "Chrome"), ("com.apple.systempreferences", "System Settings")]
     // Recorded test coverage, not an eligibility allowlist.
     var availableApplications: [(String, String)] {
         var names = Dictionary(uniqueKeysWithValues: Self.candidates)
@@ -101,14 +116,19 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     }
     func start() {
         guard timer == nil else { return }
-        observer.changed = { [weak self] requiresHide in
+        observer.changed = { [weak self] change in
+            guard let self else { return }
             #if DEBUG
-            if let self {
-                self.verificationEvents.append((requiresHide ? "hide: " : "recheck: ") + self.observer.lastNotification)
-                if self.verificationEvents.count > 100 { self.verificationEvents.removeFirst() }
-            }
+            self.verificationEvents.append("notification: " + self.observer.lastNotification)
+            if self.verificationEvents.count > 100 { self.verificationEvents.removeFirst() }
             #endif
-            if requiresHide { self?.invalidate() } else { self?.refresh() }
+            switch change {
+            case .geometry: self.invalidate(geometry: true)
+            case .target: self.invalidate()
+            case .content:
+                self.layoutDirty = true; self.layoutRevision &+= 1
+                if self.inspectionTask == nil { self.schedule(after: 0.05) }
+            }
         }
         let workspace = NSWorkspace.shared.notificationCenter
         workspaceObserver = workspace.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { [weak self] _ in
@@ -153,16 +173,23 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
             Task { await TextEditVerification.run(model: self, directory: directory) }
         }
         #endif
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+        schedule(after: 0)
+    }
+    private func schedule(after delay: TimeInterval) {
+        timer?.invalidate()
+        let next = Timer(timeInterval: max(0.01, delay), repeats: false) { [weak self] _ in
             Task { @MainActor in self?.refresh() }
         }
+        timer = next
+        RunLoop.main.add(next, forMode: .common)
     }
-    private func invalidate() {
-        generation &+= 1
+    private func invalidate(geometry: Bool = false) {
+        generation &+= 1; layoutRevision &+= 1
+        layoutDirty = true; resetPlacement = true
         panel.orderOut(nil)
         inspectionTask?.cancel(); inspectionTask = nil
         actionTask?.cancel(); actionTask = nil
-        refresh(settling: true)
+        schedule(after: geometry ? 0.08 : 0)
     }
     func checkPermission() {
         lastPermissionCheck = Date()
@@ -180,6 +207,10 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
     func verificationTrace() async -> [String] { await engine.verificationTrace() }
     var verificationActionIdle: Bool { actionTask == nil }
     var verificationPanelVisible: Bool { panel.isVisible }
+    var verificationPanelFrame: CGRect? {
+        guard panel.isVisible, let primary = NSScreen.screens.first else { return nil }
+        return WindowGeometry.flip(panel.frame, primaryTop: primary.frame.maxY)
+    }
     var verificationOverlayNumber: Int? { panel.isVisible ? panel.windowNumber : nil }
     func invokeVerificationAction(_ action: WindowAction) -> Bool { panel.invokeForVerification(action) }
     #endif
@@ -258,12 +289,13 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
             let nextStatus = L(!enabled ? "Paused" : !trusted ? "Window control permission needed" :
                 !textEditEnabled ? "External controls are off" : "Controls hidden for this application")
             if status != nextStatus { status = nextStatus }
+            schedule(after: 1)
             return
         }
         guard actionTask == nil, inspectionTask == nil else { return }
-        // ponytail: one bounded fallback interval; AX notifications bypass it.
-        if !settling && Date().timeIntervalSince(lastInspection) < (panel.isVisible ? 0.3 : 1) { return }
-        lastInspection = Date()
+        if settling { layoutDirty = true; resetPlacement = true }
+        let force = layoutDirty, reset = resetPlacement, contentRevision = layoutRevision
+        layoutDirty = false; resetPlacement = false
         observer.watch(pid: front.processIdentifier)
         let revision = generation, pid = front.processIdentifier
         let overlayNumber = panel.isVisible ? panel.windowNumber : nil
@@ -271,11 +303,17 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
         let screens = NSScreen.screens.map { WindowGeometry.flip($0.visibleFrame, primaryTop: primary.frame.maxY) }
         inspectionTask = Task { [weak self] in
             guard let self else { return }
-            if settling { try? await Task.sleep(for: .milliseconds(140)) }
             guard !Task.isCancelled else { return }
-            let result = await self.engine.inspect(pid: pid, overlayNumber: overlayNumber, screens: screens)
+            let context = self.inspectionContext(for: front)
+            let result = await self.engine.inspect(pid: pid, overlayNumber: overlayNumber, screens: screens,
+                forceLayout: force, resetPlacement: reset, context: context,
+                pointerQuery: { [weak self] in self?.panel.pointerBusy ?? false })
             guard !Task.isCancelled, self.generation == revision else { return }
             self.inspectionTask = nil
+            if self.layoutRevision != contentRevision { self.schedule(after: 0); return }
+            self.schedule(after: result.retryAfter)
+            let observed = result.snapshot.map { $0.frame.contains($0.placement) ? L("Controls active") : L("Controls outside window") } ?? L(result.reason)
+            if self.applicationStates[bundle] != observed { self.applicationStates[bundle] = observed }
             guard self.enabled, self.trusted, NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
                 self.panel.orderOut(nil); return
             }

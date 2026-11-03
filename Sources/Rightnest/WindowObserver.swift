@@ -5,10 +5,11 @@ import ApplicationServices
 /// all window inspection is performed by WindowEngine.
 @MainActor
 final class WindowObserver {
+    enum Change { case geometry, target, content }
     private var observer: AXObserver?
     private var pid: pid_t?
     private var window: AXUIElement?
-    var changed: ((Bool) -> Void)?
+    var changed: ((Change) -> Void)?
     private(set) var lastNotification = ""
     private let appNotifications = [kAXFocusedWindowChangedNotification, kAXWindowCreatedNotification,
                                     kAXFocusedUIElementChangedNotification]
@@ -29,8 +30,9 @@ final class WindowObserver {
                 let owner = Unmanaged<WindowObserver>.fromOpaque(context).takeUnretainedValue()
                 guard let current = owner.observer, CFEqual(current, source) else { return }
                 owner.lastNotification = notification as String
-                let contentOnly = notification as String == kAXFocusedUIElementChangedNotification || notification as String == kAXTitleChangedNotification
-                owner.changed?(!contentOnly)
+                let contentOnly = notification as String == kAXFocusedUIElementChangedNotification || notification as String == kAXTitleChangedNotification || notification as String == kAXWindowCreatedNotification
+                let geometry = notification as String == kAXMovedNotification || notification as String == kAXResizedNotification
+                owner.changed?(contentOnly ? .content : geometry ? .geometry : .target)
             }
         }
         guard AXObserverCreate(pid, callback, &result) == .success, let result else { return }

@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import RightnestCore
 
 /// Native controls carry interaction; the corner illustration carries identity.
 struct WelcomeView: View {
@@ -113,14 +114,26 @@ struct WelcomeView: View {
             Text(L("Listed apps are eligible, not a compatibility guarantee. Crowded or uncertain windows may hide controls."))
                 .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             if choices.isEmpty { Text(L("No matching applications")).foregroundStyle(.secondary).padding(.vertical, 20) }
-            ForEach(choices, id: \.0) { item in
-                HStack(spacing: 12) {
-                    if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: item.0) {
-                        Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable().frame(width: 30, height: 30).accessibilityHidden(true)
-                    } else { Image(systemName: "app").frame(width: 30, height: 30).accessibilityHidden(true) }
-                    Toggle(item.1, isOn: Binding(get: { !model.disabledApplications.contains(item.0) }, set: { model.setApplication(item.0, enabled: $0) }))
-                        .toggleStyle(.switch).controlSize(.small)
-                }.padding(12).background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
+            ForEach(ApplicationSupport.allCases, id: \.rawValue) { group in
+                let items = choices.filter { ApplicationSupport.group(for: $0.0) == group }
+                if !items.isEmpty {
+                    Text(L(group == .primary ? "Priority support" : group == .system ? "System applications" : "Experimental applications"))
+                        .font(.headline).padding(.top, 6)
+                    ForEach(items, id: \.0) { item in
+                        HStack(spacing: 12) {
+                            if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: item.0) {
+                                Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable().frame(width: 30, height: 30).accessibilityHidden(true)
+                            } else { Image(systemName: "app").frame(width: 30, height: 30).accessibilityHidden(true) }
+                            Toggle(isOn: Binding(get: { !model.disabledApplications.contains(item.0) }, set: { model.setApplication(item.0, enabled: $0) })) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.1)
+                                    Text(L("Last check") + ": " + (model.applicationStates[item.0] ?? L("Not checked in this session")))
+                                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                                }
+                            }.toggleStyle(.switch).controlSize(.small)
+                        }.padding(12).background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
+                    }
+                }
             }
         }
     }

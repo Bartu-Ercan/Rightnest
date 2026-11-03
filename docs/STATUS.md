@@ -2,6 +2,14 @@
 
 Root: ~/Desktop/vibecoding/Rightnest. User chose Rightnest / A Corner logo. Native SwiftUI + AppKit + serial Accessibility actor. Extra right-side controls; originals retained. Order: minimize, fit/restore, close. Apple Silicon, MIT, GitHub Releases, local stable signing, no paid Developer ID/notarization. No accounts/backend/telemetry/automatic updater. Historical bundle ID/signing storage deliberately retained.
 
+## Preview 5 implementation checkpoint (2026-11-03, not released)
+
+Safari/Chrome priority plan is active. Current working source separates ideal/temporary placement, 200 ms clear hysteresis and hover/150 ms release hold; timer-based light probes use cached layouts (maximum 1 second), geometry debounce 80 ms, transient probes 100/250 ms, unknown experimental backoff 1/2/4 seconds. Electron activation is scoped once per enabled incomplete process session, with 100/300 ms retries. Settings groups and last inspection statuses are implemented. All changes remain candidates until real verification.
+
+Debug verifier now supports `--stability-seconds 1800`, content-free progress JSON, geometry latency, 20 synthetic occlusion cycles, cumulative CPU windows and disposable-fixture actions. Synthetic panels do not satisfy real system volume/brightness HUD gates. New five XCTest cases cover return hysteresis, hover safety, flicker, backoff and Electron session activation. Local Swift build passed after a Swift 6 isolation fix. New local checks, CI and interactive verification are pending. Build 6 is a candidate, not a published Preview 5.
+
+User approved a Safari/Chrome test interval in this chat. Use only separately prepared disposable windows; cancel if foreground/fixture identity changes. Real 30 minutes per browser and 20 actual system HUD cycles per browser remain unexecuted. Next: run local checks, build/install signed debug candidate, smoke-test measurements, then start long browser sessions. Do not publish until acceptance gates are evidenced.
+
 ## Current delivery (2026-11-03)
 
 Source code: 8682e26. Final CI https://github.com/Bartu-Ercan/Rightnest/actions/runs/41529100917 PASSED: 15 XCTest cases, 64 standalone checks, 24 native hover/layout combinations and arm64 release/bundle validation. Later pending changes are documentation only. Preview 4 / build 5 PUBLISHED: https://github.com/Bartu-Ercan/Rightnest/releases/tag/v0.1.0-preview.4 (release target 8643df3; runtime code identical to CI-tested 8682e26). Public DMG and checksum were re-downloaded to .build/download-preview-4 and SHA-256 matched.
@@ -33,3 +41,10 @@ Settings: Overview/Applications sidebar, A Corner window illustration, semantic 
 3. Multi-display/Spaces/Mission Control/Stage Manager, sleep/wake, one-hour CPU/RSS soak, clean-user browser-download/install/update/remove and older macOS coverage. Broad beta/stable gates remain open; see plan-audit.md.
 
 All project code/assets/docs stay in this root. Shared skill sources remain global under ~/.codex/skill-sources. Use relevant installed skills selectively; reference material is not a configured service. Keep evidence and failures explicit when resuming; never turn planned verification into a pass.
+
+### Preview 5 verification in progress
+
+- Local 87 standalone + 24 native hover checks passed before the latest timing refinement; next count is 88 standalone. Debug build 6 installed with the existing stable local identity; AX grant remains valid in the verifier.
+- `.build/verify-p5-safari-smoke` failed to show a panel during an activating launch. Repeated with background launch (`open -g -n`), the panel appeared. Do not count the first failure as an app compatibility pass.
+- `.build/verify-p5-safari-smoke2`: 50 geometry samples p95 314.7 ms (FAIL <=300), 20 synthetic occlusion cycles maximum return 632.6 ms (FAIL <=500). Stable observation subsequently detected a disappearing panel, no actions dispatched. Investigating incidental window-created invalidations. These are synthetic panels, not actual OS HUD cycles.
+- Refinement: a clear transient area schedules the remaining clear/pointer deadline directly, instead of adding repeated probe intervals; nonfocused window-created events trigger reinspection without immediately hiding. Measurement polling reduced from 100 ms to 10 ms for latency phases only. Real 30-minute sessions have not begun.

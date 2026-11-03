@@ -13,12 +13,12 @@ enum CompatibilityAudit {
         var observations: [[String: String]] = []
         while !Task.isCancelled {
             for app in NSWorkspace.shared.runningApplications {
-                guard let id = app.bundleIdentifier, app.activationPolicy == .regular, id != Bundle.main.bundleIdentifier else { continue }
+                guard let id = app.bundleIdentifier, app.activationPolicy == .regular, id != Bundle.main.bundleIdentifier, model.enabled, model.textEditEnabled, !model.disabledApplications.contains(id) else { continue }
                 let screens = NSScreen.screens.map { screen in
                     CGRect(x: screen.visibleFrame.minX, y: (NSScreen.screens.first?.frame.maxY ?? 0)-screen.visibleFrame.maxY,
                            width: screen.visibleFrame.width, height: screen.visibleFrame.height)
                 }
-                let result = await engine.inspect(pid: app.processIdentifier, overlayNumber: model.verificationOverlayNumber, requireFocus: false, screens: screens)
+                let result = await engine.inspect(pid: app.processIdentifier, overlayNumber: model.verificationOverlayNumber, requireFocus: false, screens: screens, context: model.inspectionContext(for: app, allowActivation: false))
                 let frame = result.snapshot.map { NSStringFromRect($0.frame) } ?? "unavailable"
                 let key = id + result.reason + frame
                 if previous[id] != key {
