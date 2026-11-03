@@ -124,14 +124,16 @@ struct WelcomeView: View {
                             if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: item.0) {
                                 Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable().frame(width: 30, height: 30).accessibilityHidden(true)
                             } else { Image(systemName: "app").frame(width: 30, height: 30).accessibilityHidden(true) }
-                            Toggle(isOn: Binding(get: { !model.disabledApplications.contains(item.0) }, set: { model.setApplication(item.0, enabled: $0) })) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(item.1)
-                                    Text(L("Last check") + ": " + (model.applicationStates[item.0] ?? L("Not checked in this session")))
-                                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                                }
-                            }.toggleStyle(.switch).controlSize(.small)
-                        }.padding(12).background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(item.1)
+                                Text(L("Last check") + ": " + (model.applicationStates[item.0] ?? L("Not checked in this session")))
+                                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                            }.frame(maxWidth: .infinity, alignment: .leading)
+                            Toggle(item.1, isOn: Binding(get: { !model.disabledApplications.contains(item.0) }, set: { model.setApplication(item.0, enabled: $0) }))
+                                .labelsHidden().toggleStyle(.switch).controlSize(.small)
+                                .accessibilityLabel(Text(item.1))
+                                .accessibilityHint(Text(L("Last check") + ": " + (model.applicationStates[item.0] ?? L("Not checked in this session"))))
+                        }.frame(maxWidth: .infinity, alignment: .leading).padding(12).background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
                     }
                 }
             }

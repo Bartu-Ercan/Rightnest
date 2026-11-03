@@ -4,10 +4,10 @@ Root: `~/Desktop/vibecoding/Rightnest`. Rightnest / A Corner identity. Native Sw
 
 ## Current state (2026-11-04)
 
-- Branch: `codex/feasibility`. Latest source checkpoint b6771d5. Check `git status` before editing.
+- Branch: `codex/feasibility`. Latest engine checkpoint c259556 (CI 41723353453 passed); SettingsView-only working changes follow. Check `git status` before editing.
 - Published version is still **Preview 4 / build 5**: https://github.com/Bartu-Ercan/Rightnest/releases/tag/v0.1.0-preview.4. Preview 5 has NOT been uploaded or approved.
-- Installed `~/Applications/Rightnest.app` is now **production release configuration / build 6**, source b6771d5. Developer entrypoint strings were checked absent before installing; strict signature passed. It is an unreleased candidate, not a gate-approved Preview 5.
-- `dist/Rightnest-0.1.0-preview-arm64.dmg` is the separately rebuilt production-configuration candidate (b6771d5). Package image/signature/arm64/debug-entrypoint exclusion/checksum passed. Earlier candidate read-only mount/icon/Applications-link/build checks passed; repeat mount check after final changes. No candidate browser-download/clean-user proof or public checksum-download check exists.
+- Installed `~/Applications/Rightnest.app` is being replaced with **optimized DEBUG instrumentation / build 6** for browser testing. Never distribute this measurement copy. Rebuild --release for delivery; public Preview 5 remains gated.
+- `dist/Rightnest-0.1.0-preview-arm64.dmg` is the separately rebuilt production-configuration candidate (c259556). Package image/signature/arm64/debug-entrypoint exclusion/checksum passed. Earlier candidate read-only mount/icon/Applications-link/build checks passed; repeat mount check after final changes. No candidate browser-download/clean-user proof or public checksum-download check exists.
 - Current accepted scope/gates: [browser-stability-plan.md](browser-stability-plan.md). Original broader plan remains incomplete: [plan-audit.md](plan-audit.md).
 
 ## Implemented candidate behavior
@@ -32,15 +32,17 @@ Compact persistent record: [verification-preview5.json](verification-preview5.js
 - Normal unoptimized debug service, static Chrome Guest fixture: 30s warmup +five 60s windows, mean 1.2119% (FAIL <1). `.build/measure-p5-chrome-idle/result.json`. This is separate from the 10 Hz AX verifier result; neither failure is hidden.
 - Actual OS volume/brightness cycles: NOT VERIFIED. CUA `XF86AudioLowerVolume` returned keyNotFound. Synthetic panels do not satisfy that gate. No system volume setting was changed by the failed key attempt.
 
-## Active measurement / next immediate step
+## Current verification / next immediate step
 
-Baseline actual release external CPU completed: mean 1.0273% across five 60s windows after warmup (FAIL <1), `.build/measure-p5-release-idle/result.json`; RSS 36576→25488 KiB, not growing in this short interval. Optimized DEBUG mean was 1.0463% (also FAIL). All failed baselines are in verification-preview5.json.
+Actual release CPU after one-second fallback PASSED: `.build/measure-p5-release-idle-1s/result.json`, 30s warmup +five 60s windows, mean 0.5978%, RSS 55904→24464 KiB. Runtime c259556. This closes this host/workload's normal idle CPU gate, not a one-hour or multi-device gate. Failed baseline mean 1.0273% and all instrumented failures remain in verification-preview5.json.
 
-Steady visible fallback now follows the accepted one-second interval, replacing the extra 500ms probes. Focus/target notifications stay immediate, geometry remains 80ms, transient probes/clear deadlines remain fast. Local 92 standalone +24 native checks and production package passed; new source needs CI/runtime measurement. Install the separately built current production candidate, verify controls through CUA, then run external ServiceCPU to `.build/measure-p5-release-idle-1s`. Do not conflate it with baseline results. No new measurement has passed yet.
+Production DMG c259556 was mounted read-only: strict signature, arm64, build 6, icon, Applications link, image checksum all passed. Current dist/Rightnest.app is being replaced by optimized DEBUG instrumentation for browser verification; the DMG stays production. Installed app is being replaced with that local profiling binary; do not distribute it.
+
+CUA direct own-panel coordinate click opened Rightnest Settings, so physical pointer/composite verification is NOT counted as passed. Settings rendered review revealed uneven application row widths and missing app-name labels on switch AX elements. Working-tree SettingsView fix fills row width and explicitly labels switches with app names / last-check hints. No engine change. Initial rendered/AX verification confirmed app-name descriptions and full-width rows; toggle controls also needed trailing alignment, now adjusted with a separate expanding text column. Final rendered settings inspection PASSED: full-width rows, trailing-aligned native toggles, app-name AX descriptions and last-check hints. Close Settings, prepare Chrome Guest fixture, then run the 1800s verifier. CUA can leave menus open: use a fresh full AX snapshot and the exposed Cancel action rather than assuming Escape dismissed it.
 
 ## Next actions
 
-1. Collect actual release-service external CPU result. If it still fails, profile/fix the actual service cost and retain failed baselines. Do not call the normal CPU gate passed from unoptimized or incomplete evidence.
+1. Normal release idle CPU gate is passed for this host/workload. Preserve failed baselines; continue browser/interaction gates.
 2. In a user-authorized uninterrupted interval, retry Chrome and Safari 1800-second fixture sessions using current settled-geometry verifier. The previous 681s Safari and 30s Chrome reports do not satisfy the 30-minute gates. Record actual source/configuration. `--stability-seconds 1800` measures geometry, synthetic occlusion, visibility and actions; its own 10 Hz AX work contributes CPU overhead.
 3. Actual 20 OS HUD cycles per browser remain blocked on available input/testing method; no unsupported key workaround or false synthetic substitution. Native Control Center UI may provide additional occlusion evidence but is not automatically equivalent to auto-expiring keyboard HUDs.
 4. Separate narrow/wide/tab/toolbar/menu/pointer checks; Finder/Preview/System Settings basics; Discord visibility/placement/actions separately. No actions on personal documents/chats. Browser modal save/open sheets and true full screen stay excluded; verify hiding rather than support.
@@ -51,3 +53,5 @@ Steady visible fallback now follows the accepted one-second interval, replacing 
 User approved a Safari/Chrome test interval in this chat. Use only separately prepared local single-tab Safari / Chrome Guest fixtures. A different Space is not process/focus isolation. Stop on unexpected focus/fixture change. Do not close personal browser windows/chats. Avoid new foreground windows while the user studies except authorized tests. Existing local signing identity must be retained; never reset TCC, regenerate keys or print secrets. No new permission is silently granted.
 
 Earlier Preview 4 detailed evidence and limitations remain in validation.md / compatibility.md. Earlier WhatsApp evidence is visibility only (42 consecutive samples /51s at1072×600); no chat-window actions. Blender untested/not installed. App eligibility never means verified compatibility. Keep all project assets, code, scripts and decisions in this root.
+
+After reinstalling/restarting Rightnest, reclaim it through `cua.getApp` before interacting; old bindings can become inactive. Use fresh full AX snapshots when an open menu is missed by diff output; use exposed Cancel actions.

@@ -103,5 +103,30 @@
     ],
     "sourceRuntime": "b6771d538fe381a1642ff6e3fac9d2989d8a20ed",
     "qualification": "500ms steady polling baseline; failed CPU target. One-second accepted fallback refinement will be measured separately."
+  },
+  "normalReleaseOneSecondCPU": {
+    "application": "com.google.Chrome",
+    "meanCPUPercent": 0.5977929660517388,
+    "method": "External ps cumulative CPU; 30s warmup, five 60s windows; read-only foreground/panel checks",
+    "os": "Version 27.0 (Build 26A428)",
+    "phase": "idle",
+    "result": "passed",
+    "rssKiB": [
+      55904,
+      40176,
+      25664,
+      24336,
+      24464
+    ],
+    "servicePID": 42857,
+    "windowCPUPercent": [
+      0.6112604310895511,
+      0.5948571664979796,
+      0.5616184774692664,
+      0.6115065329119674,
+      0.6097222222899294
+    ],
+    "sourceRuntime": "c25955622ac2fb052d263e669fcd5adbab042b32",
+    "qualification": "Production release, external monitor, static Chrome Guest fixture. This passes the normal idle CPU gate; does not erase earlier failed baselines or satisfy a one-hour soak."
   }
 }
