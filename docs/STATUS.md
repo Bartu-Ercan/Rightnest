@@ -58,3 +58,15 @@ All project code/assets/docs stay in this root. Shared skill sources remain glob
 - Final-session initial metrics: Safari geometry p95 213.5 ms, 20 synthetic occlusions maximum return 372.3 ms, 60-second title stress CPU 3.90%. Still running; no completed long-session pass yet.
 - Instrumented idle CPU failed the <1% target: first four 60s windows averaged 1.75%. This process includes the 10 Hz verifier's AX/fixture checks; do not relabel it a normal-service pass. After browser sessions, measure the normal release service separately after warmup; retain both results.
 - Working-tree-only refinement: unknown experimental layouts with a structural ideal but no verified placement now also back off 1/2/4 seconds. Three standalone assertions and one XCTest added. This branch is not traversed by the passing visible Safari path. Installed browser test binary remains source 2b81726; do not imply it includes this pending refinement.
+
+### 2026-11-04: test interval interruption and Chrome
+
+Safari final1800 stopped at recorded elapsed 681 seconds / 6250 visible stable-window samples when foreground became com.openai.codex. Empty action trace; no window actions sent. This is an interrupted test, not a 30-minute pass. Five instrumented idle windows averaged 1.7426% (FAIL <1). Normal release-service idle measurement remains required. Compact evidence: verification-preview5.json.
+
+Chrome launched through the native UI into a separate Guest window, exact local fixture verified. Installed debug runtime still 2b81726; `.build/verify-p5-chrome-1800` is now running. Do not interrupt or reinstall the active test process. New source f2dbe31 only changes unknown experimental backoff; CI queued/running, check before delivery.
+
+### Chrome geometry diagnostic and normal CPU measurement
+
+Chrome's initial long attempt `.build/verify-p5-chrome-1800` failed before observation/actions: the native frame settled from the requested dimensions to a different actual frame, invalidating the verifier's fixed-origin expectation. `.build/verify-p5-chrome-actions` stopped during initial resize settling. No actions sent in either failure. After recording fresh/held AX references, `.build/verify-p5-chrome-geometry` PASSED 30s / 287 visible samples and all actions; both AX frame references were identical during settled preparation. This supports a startup-settling cause, not a stale AX-reference claim.
+
+Debug verifier now requires 500 ms continuously stable geometry/panel before observation and computes movement expectations from actual right/bottom geometry rather than assuming size never changes. Added debug-only `--measure-idle` for 30s warmup + five 60s cumulative CPU windows with 1 Hz cached status checks and fixture identity at boundaries; no fixture moves/HUD panels/window actions. Dedicated static window-idle.html avoids timer workload. All new flags remain excluded from release. These latest debug-only changes are not yet committed/CI-tested.

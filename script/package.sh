@@ -10,7 +10,7 @@ trap 'rm -rf "$STAGE"' EXIT
 /usr/bin/ditto --norsrc --noextattr "$APP" "$STAGE/Rightnest.app"
 codesign --verify --strict "$STAGE/Rightnest.app"
 lipo "$STAGE/Rightnest.app/Contents/MacOS/Rightnest" -verify_arch arm64
-if strings "$STAGE/Rightnest.app/Contents/MacOS/Rightnest" | grep -E -- '--verify-textedit|--verify-safari|--verify-finder|--verify-app|--audit-compatibility|--stability-seconds'; then
+if strings "$STAGE/Rightnest.app/Contents/MacOS/Rightnest" | grep -E -- '--verify-textedit|--verify-safari|--verify-finder|--verify-app|--audit-compatibility|--stability-seconds|--measure-idle'; then
     echo 'Refusing to package developer test entrypoints.' >&2; exit 1
 fi
 ln -s /Applications "$STAGE/Applications"

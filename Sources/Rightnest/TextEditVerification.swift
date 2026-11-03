@@ -76,6 +76,8 @@ enum TextEditVerification {
         if seconds > 30 {
             report["phase"] = "geometry benchmark"; saveProgress(report, directory: directory)
             guard let original = client.frame(target.window), let home = model.verificationPanelFrame else { throw Failure(message: "Fixture geometry missing") }
+            report["geometryBaselineFrame"] = NSStringFromRect(original)
+            report["geometryBaselinePanel"] = NSStringFromRect(home)
             var appearance: [Double] = []
             for i in 0..<50 {
                 try verifyWritableFixture()
@@ -84,7 +86,8 @@ enum TextEditVerification {
                 guard client.setPosition(CGPoint(x: x, y: original.minY), on: target.window) else { throw Failure(message: "Fixture move rejected") }
                 try await wait("Panel did not follow settled fixture", pollMilliseconds: 10) {
                     guard let panel = model.verificationPanelFrame, let frame = client.frame(target.window) else { return false }
-                    return abs(frame.minX-x) <= 2 && abs(panel.minX-(home.minX+x-original.minX)) <= 2
+                    return abs(frame.minX-x) <= 2 && abs(panel.minX-(home.minX+frame.maxX-original.maxX)) <= 2 &&
+                        abs(panel.minY-(home.minY+frame.minY-original.minY)) <= 2 && panel.size == home.size
                 }
                 appearance.append((ProcessInfo.processInfo.systemUptime-begin)*1000)
             }
@@ -156,6 +159,46 @@ enum TextEditVerification {
         }
         report["stability"] = "passed: \(samples) visible samples; total session \(seconds) seconds including declared geometry/HUD phases"
         report["phase"] = "window actions"; saveProgress(report, directory: directory)
+    }
+
+    /// Normal service CPU with one cached visibility/front-app check per second;
+    /// no fixture moves, synthetic panels, 10 Hz AX polling or window actions.
+    static func measureIdle(model: AppModel, directory: URL, appID: String, fixture: URL) async {
+        var report: [String: String] = ["application": appID, "workload": "normal debug service; 1 Hz status checks, AX fixture identity only at boundaries"]
+        let client = AccessibilityClient()
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            guard AXIsProcessTrusted(), let front = NSWorkspace.shared.frontmostApplication, front.bundleIdentifier == appID,
+                  let target = client.target(pid: front.processIdentifier), matchesFixture(target.window, fixture: fixture, client: client) else {
+                throw Failure(message: "Prepared foreground fixture missing")
+            }
+            try await wait("Panel unavailable for idle measurement") { model.verificationPanelVisible }
+            func verifyStatus() throws {
+                guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.pid, model.verificationPanelVisible else {
+                    throw Failure(message: "Foreground or panel changed during idle measurement")
+                }
+            }
+            report["phase"] = "30 second warmup"; saveProgress(report, directory: directory)
+            for _ in 0..<30 { try await Task.sleep(for: .seconds(1)); try verifyStatus() }
+            var windows: [Double] = []
+            for _ in 0..<5 {
+                let start = ProcessInfo.processInfo.systemUptime, cpu = cpuSeconds()
+                for _ in 0..<60 { try await Task.sleep(for: .seconds(1)); try verifyStatus() }
+                guard let focused = client.focusedWindow(pid: target.pid), CFEqual(focused, target.window), matchesFixture(focused, fixture: fixture, client: client) else {
+                    throw Failure(message: "Fixture changed during idle measurement")
+                }
+                windows.append(100*(cpuSeconds()-cpu)/(ProcessInfo.processInfo.systemUptime-start))
+                let average = windows.reduce(0,+)/Double(windows.count)
+                report["phase"] = "idle CPU"; report["windows"] = String(windows.count)
+                report["meanCPUPercent"] = String(average)
+                report["windowCPUPercent"] = windows.map(String.init(describing:)).joined(separator: ",")
+                saveProgress(report, directory: directory)
+            }
+            report["result"] = windows.reduce(0,+)/Double(windows.count) < 1 ? "passed" : "failed CPU target"
+        } catch { report["result"] = "failed"; report["error"] = (error as? Failure)?.message ?? String(describing: error) }
+        if let data = try? JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]) {
+            try? data.write(to: directory.appendingPathComponent("result.json"), options: .atomic)
+        }
     }
 
     static func run(model: AppModel, directory: URL, browserFixture: URL? = nil, fixtureApplicationID: String = "com.apple.Safari") async {
@@ -234,6 +277,27 @@ enum TextEditVerification {
             report["document"] = applicationID == "com.apple.finder" ? "explicitly prepared unique Finder fixture title verified" : "disposable fixture verified by AXDocument or AXWebArea URL"
             try await wait("Control panel did not appear") { model.verificationPanelVisible }
             report["panel"] = "visible"
+            var preparation: [String] = []
+            var lastFrame: CGRect?
+            var stableSince: TimeInterval?
+            let preparationDeadline = ProcessInfo.processInfo.systemUptime+8
+            while ProcessInfo.processInfo.systemUptime < preparationDeadline {
+                try await Task.sleep(for: .milliseconds(100))
+                let fresh = client.focusedWindow(pid: target.pid)
+                let heldRect = client.frame(target.window).map { NSStringFromRect($0) } ?? "none"
+                let freshRect = fresh.flatMap { client.frame($0) }.map { NSStringFromRect($0) } ?? "none"
+                let panelRect = model.verificationPanelFrame.map { NSStringFromRect($0) } ?? "hidden"
+                preparation.append("held=\(heldRect) fresh=\(freshRect) panel=\(panelRect)")
+                let actual = fresh.flatMap { client.frame($0) }
+                let now = ProcessInfo.processInfo.systemUptime
+                if actual != nil, actual == lastFrame, model.verificationPanelVisible {
+                    if stableSince == nil { stableSince = now }
+                    if now-(stableSince ?? now) >= 0.5 { break }
+                } else { stableSince = nil }
+                lastFrame = actual
+            }
+            report["preparationGeometry"] = preparation.joined(separator: "\n")
+            guard let stableSince, ProcessInfo.processInfo.systemUptime-stableSince >= 0.5 else { throw Failure(message: "Fixture did not settle before observation") }
             if browserFixture != nil {
                 let argument = CommandLine.arguments.firstIndex(of: "--stability-seconds")
                 var seconds = 30

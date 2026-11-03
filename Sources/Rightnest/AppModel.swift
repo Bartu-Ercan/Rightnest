@@ -109,7 +109,7 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
 
     private var isVerificationRun: Bool {
         #if DEBUG
-        CommandLine.arguments.contains("--verify-app") || CommandLine.arguments.contains("--audit-compatibility") || CommandLine.arguments.contains("--verify-textedit") || (CommandLine.arguments.contains("--verify-safari") || CommandLine.arguments.contains("--verify-finder"))
+        CommandLine.arguments.contains("--measure-idle") || CommandLine.arguments.contains("--verify-app") || CommandLine.arguments.contains("--audit-compatibility") || CommandLine.arguments.contains("--verify-textedit") || (CommandLine.arguments.contains("--verify-safari") || CommandLine.arguments.contains("--verify-finder"))
         #else
         false
         #endif
@@ -151,6 +151,12 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
         if let index = CommandLine.arguments.firstIndex(of: "--audit-compatibility"), CommandLine.arguments.indices.contains(index + 1) {
             let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
             Task { await CompatibilityAudit.run(directory: directory, model: self) }
+        }
+        if let index = CommandLine.arguments.firstIndex(of: "--measure-idle"), CommandLine.arguments.indices.contains(index + 3) {
+            let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
+            let appID = CommandLine.arguments[index + 2]
+            let fixture = URL(fileURLWithPath: CommandLine.arguments[index + 3])
+            Task { await TextEditVerification.measureIdle(model: self, directory: directory, appID: appID, fixture: fixture) }
         }
         if let index = CommandLine.arguments.firstIndex(of: "--verify-app"), CommandLine.arguments.indices.contains(index + 3) {
             let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
