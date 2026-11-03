@@ -69,5 +69,39 @@
     "windows": "5",
     "workload": "normal debug service; 1 Hz status checks, AX fixture identity only at boundaries"
   },
-  "normalOptimizedCPU": "Running; release optimization with DEBUG instrumentation. No pass claimed yet."
+  "normalOptimizedCPU": {
+    "application": "com.google.Chrome",
+    "meanCPUPercent": "1.0463207875777703",
+    "phase": "idle CPU",
+    "result": "failed CPU target",
+    "windowCPUPercent": "1.0448372104914665,1.0641295562154913,1.0469269029385668,1.0593443378114948,1.0163659304318313",
+    "windows": "5",
+    "workload": "normal debug service; 1 Hz status checks, AX fixture identity only at boundaries",
+    "configuration": "Release optimization with DEBUG instrumentation; not a distributable binary"
+  },
+  "normalReleaseBaselineCPU": {
+    "application": "com.google.Chrome",
+    "meanCPUPercent": 1.0272687827660971,
+    "method": "External ps cumulative CPU; 30s warmup, five 60s windows; read-only foreground/panel checks",
+    "os": "Version 27.0 (Build 26A428)",
+    "phase": "idle",
+    "result": "failed CPU target",
+    "rssKiB": [
+      36576,
+      35840,
+      35920,
+      29952,
+      25488
+    ],
+    "servicePID": 42127,
+    "windowCPUPercent": [
+      1.0244653859398007,
+      1.0410169806145593,
+      1.0576448175570514,
+      1.0572724558147404,
+      0.9559442739043338
+    ],
+    "sourceRuntime": "b6771d538fe381a1642ff6e3fac9d2989d8a20ed",
+    "qualification": "500ms steady polling baseline; failed CPU target. One-second accepted fallback refinement will be measured separately."
+  }
 }

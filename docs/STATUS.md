@@ -14,7 +14,7 @@ Root: `~/Desktop/vibecoding/Rightnest`. Rightnest / A Corner identity. Native Sw
 
 Ideal and temporary placement are separate, with obstruction/unverified/missing-native-space reasons. Return after 200 ms continuous clearance; no optional relocation while hovered/pressed or within 150 ms of pointer exit. Unsafe space hides. Exact return deadline avoids extra polling delay. Unknown app surfaces do not cause indefinite fast obstruction polling.
 
-One-shot scheduling replaces repeating polling: focus/target immediate, geometry 80 ms, content/nonfocused-window creation soft revalidation; normal visible light checks every 500 ms with at-most-one-second layout/capability data, transient probes 100 ms for five seconds then 250 ms, unknown experimental layouts 1/2/4 seconds. Actor queries stay bounded; generation/cancellation guards discard stale results. Clicks always use fresh validation.
+One-shot scheduling replaces repeating polling: focus/target immediate, geometry 80 ms, content/nonfocused-window creation soft revalidation; normal visible light checks every one second with at-most-one-second layout/capability data, transient probes 100 ms for five seconds then 250 ms, unknown experimental layouts 1/2/4 seconds. Actor queries stay bounded; generation/cancellation guards discard stale results. Clicks always use fresh validation.
 
 Electron AXManualAccessibility is attempted once per enabled incomplete process session; retry at 100/300 ms. Disabled/read-only-audit/cancelled work does not trigger it. Top-strip traversal remains strict; native Chromium and WhatsApp exceptions are scoped. Settings group priority/system/experimental and show the latest inspection result. No new theme/motion/runtime dependency.
 
@@ -32,11 +32,11 @@ Compact persistent record: [verification-preview5.json](verification-preview5.js
 - Normal unoptimized debug service, static Chrome Guest fixture: 30s warmup +five 60s windows, mean 1.2119% (FAIL <1). `.build/measure-p5-chrome-idle/result.json`. This is separate from the 10 Hz AX verifier result; neither failure is hidden.
 - Actual OS volume/brightness cycles: NOT VERIFIED. CUA `XF86AudioLowerVolume` returned keyNotFound. Synthetic panels do not satisfy that gate. No system volume setting was changed by the failed key attempt.
 
-## Active measurement — do not interrupt
+## Active measurement / next immediate step
 
-Optimized DEBUG comparison completed: five windows mean 1.0463% (FAIL <1); `.build/measure-p5-chrome-idle-optimized/result.json`, configuration.json records -O +DEBUG. This failure remains evidence.
+Baseline actual release external CPU completed: mean 1.0273% across five 60s windows after warmup (FAIL <1), `.build/measure-p5-release-idle/result.json`; RSS 36576→25488 KiB, not growing in this short interval. Optimized DEBUG mean was 1.0463% (also FAIL). All failed baselines are in verification-preview5.json.
 
-The installed app was then replaced with the separately built production release (no test entrypoints), launched in background and its three accessible controls verified in the static Chrome Guest fixture through CUA. External read-only `script/measure_service_cpu.swift` is now running as `.build/ServiceCPU <pid> com.google.Chrome .build/measure-p5-release-idle`: progress/result JSON. Thirty-second warmup +five 60s cumulative ps CPU windows; monitor runs outside the measured service. It checks foreground app and visible panel through read-only platform metadata, never activates apps or sends AX actions. No final result yet. Do not replace or stop the running service until complete.
+Steady visible fallback now follows the accepted one-second interval, replacing the extra 500ms probes. Focus/target notifications stay immediate, geometry remains 80ms, transient probes/clear deadlines remain fast. Local 92 standalone +24 native checks and production package passed; new source needs CI/runtime measurement. Install the separately built current production candidate, verify controls through CUA, then run external ServiceCPU to `.build/measure-p5-release-idle-1s`. Do not conflate it with baseline results. No new measurement has passed yet.
 
 ## Next actions
 

@@ -60,7 +60,7 @@ public struct ReflowState: Sendable {
         }
         if let start = transientSince { return now-start < 5 ? 0.1 : 0.25 }
         if current == nil && experimental { return [1.0, 1.0, 2.0, 4.0][unknownFailures] }
-        return current == nil ? 1 : 0.5
+        return 1
     }
 }
 

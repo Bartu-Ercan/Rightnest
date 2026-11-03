@@ -132,7 +132,7 @@ require(reflow.update(blockedHome, now: 1, pointerInside: false) == moved, "A co
 require(reflow.retryDelay(now: 1.1, experimental: false) == 0.1, "Transient blockage uses fast probes")
 require(reflow.update(clearHome, now: 2, pointerInside: false) == moved, "One clear observation must not move the strip")
 require(reflow.update(clearHome, now: 2.21, pointerInside: false) == home, "A cleared HUD returns controls to the original corner")
-require(reflow.retryDelay(now: 3, experimental: false) == 0.5, "Home placement stops burst probes but watches for new HUDs")
+require(reflow.retryDelay(now: 3, experimental: false) == 1, "Home placement stops burst probes but watches for new HUDs")
 _ = reflow.update(blockedHome, now: 4, pointerInside: false)
 _ = reflow.update(clearHome, now: 4.1, pointerInside: true)
 require(reflow.update(clearHome, now: 4.5, pointerInside: true) == moved, "Hovered controls cannot move voluntarily")
@@ -173,7 +173,7 @@ print("Clear-area return deadline: 1 check passed")
 
 var uncertainSurface = ReflowState()
 _ = uncertainSurface.update(PlacementDecision(ideal: home, available: moved, currentIsClear: false, alternativeReason: .unverifiedSurface), now: 0, pointerInside: false)
-require(uncertainSurface.retryDelay(now: 0, experimental: true) == 0.5, "Unverified app surfaces do not create endless transient burst polling")
+require(uncertainSurface.retryDelay(now: 0, experimental: true) == 1, "Unverified app surfaces do not create endless transient burst polling")
 print("Alternative reason scheduling: 1 check passed")
 
 var incompleteNative = ReflowState()
