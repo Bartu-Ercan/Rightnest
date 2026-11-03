@@ -59,3 +59,5 @@ Safari/Chrome are priority; Finder, Preview, System Settings and TextEdit are sy
 Layout/capability caches last at most one second and are discarded on identity, geometry or relevant content changes. Every action still performs fresh target/capability/geometry and surface validation. AX remains actor-owned; UI generations discard cancelled/stale results.
 
 For detected Electron bundles with incomplete trees, enable only documented `AXManualAccessibility` once per process launch session and recheck at 100/300 ms. Disabled apps and explicit read-only audits never trigger this. [Electron documentation](https://raw.githubusercontent.com/electron/electron/main/docs/tutorial/accessibility.md). Native Chromium/WhatsApp geometry rules remain narrowly scoped.
+
+Held pointer input keeps the press-origin callback: periodic presentation cannot retarget a held gesture to a different window. Hiding clears its callback; movement while held hides/cancels it. The actor still validates the original snapshot at dispatch. Native offscreen routing checks cover retained origin, hide cancellation and movement cancellation.

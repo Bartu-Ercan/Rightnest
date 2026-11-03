@@ -31,8 +31,31 @@ final class ControlPanel: NSPanel {
         button.performClick(nil)
         return true
     }
+    static func verifyHeldPressRouting() -> Int {
+        let panel = ControlPanel()
+        defer { panel.close() }
+        guard let button = panel.buttons[.minimize] as? ControlButton else { preconditionFailure("Missing native button") }
+        var origin = 0, replacement = 0
+        panel.action = { _ in origin += 1 }
+        button.withHeldPress {
+            panel.show(at: panel.frame, enabled: [.minimize]) { _ in replacement += 1 }
+            button.performClick(nil)
+            precondition(origin == 1 && replacement == 0, "A held press keeps its original handler")
+            panel.orderOut(nil)
+            button.performClick(nil)
+            precondition(origin == 1 && replacement == 0, "Hiding cancels a late press callback")
+        }
+        panel.action = { _ in origin += 1 }
+        button.withHeldPress {
+            panel.show(at: panel.frame.offsetBy(dx: 20, dy: 0), enabled: [.minimize]) { _ in replacement += 1 }
+            button.performClick(nil)
+            precondition(origin == 1 && replacement == 0, "Moving during a held press cancels instead of retargeting")
+        }
+        return 3
+    }
     #endif
     override func orderOut(_ sender: Any?) {
+        action = nil
         for button in buttons.values { (button as? ControlButton)?.clearHover() }
         super.orderOut(sender)
     }
@@ -42,6 +65,12 @@ final class ControlPanel: NSPanel {
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
     func show(at frame: CGRect, enabled: Set<WindowAction>, restoring: Bool = false, action: @escaping (WindowAction) -> Void) {
+        // Keep the press-origin handler until mouseUp; a newer window must not
+        // inherit a gesture started on the previous window. Hiding cancels it.
+        if buttons.values.contains(where: { ($0 as? ControlButton)?.trackingPress == true }) {
+            if self.frame != frame { orderOut(nil) }
+            return
+        }
         self.action = action
         for (kind, button) in buttons {
             let next = enabled.contains(kind)
@@ -142,6 +171,11 @@ private final class ControlButton: NSButton {
     }
     private var hover: NSTrackingArea?
     #if DEBUG
+    func withHeldPress(_ body: () -> Void) {
+        trackingPress = true
+        defer { trackingPress = false }
+        body()
+    }
     func verifyHoverFeedback() {
         hovered = true; isEnabled = true; updateHoverAppearance()
         guard let background = layer?.backgroundColor,
