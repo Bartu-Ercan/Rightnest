@@ -170,3 +170,8 @@ _ = returnDeadline.update(PlacementDecision(ideal: home, available: moved, curre
 _ = returnDeadline.update(PlacementDecision(ideal: home, available: home, currentIsClear: true), now: 6, pointerInside: false)
 require(abs(returnDeadline.retryDelay(now: 6, experimental: false)-0.2) < 0.001, "A clear area schedules its exact return deadline")
 print("Clear-area return deadline: 1 check passed")
+
+var uncertainSurface = ReflowState()
+_ = uncertainSurface.update(PlacementDecision(ideal: home, available: moved, currentIsClear: false, alternativeReason: .unverifiedSurface), now: 0, pointerInside: false)
+require(uncertainSurface.retryDelay(now: 0, experimental: true) == 0.5, "Unverified app surfaces do not create endless transient burst polling")
+print("Alternative reason scheduling: 1 check passed")

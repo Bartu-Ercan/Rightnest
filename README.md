@@ -4,6 +4,8 @@ Native macOS menu-bar utility that adds **minimize, fit/restore, and close** con
 
 **Developer preview, not a universal window-control replacement.** Preview 4 evaluates all identified normal applications automatically, without an app-name allowlist. It prefers the rightmost verified anchor, trying a 102 pt strip then 66 pt compact controls before moving left. TextEdit, Safari, Finder, Preview and Chrome have passed disposable-window action tests. WhatsApp’s measured native navigation spacer has passed a read-only foreground visibility check; its three actions are not yet app-verified. Other apps, including Blender, are eligible but not thereby verified. Crowded or incomplete titlebars use a small shelf outside the window only when that desktop space is clear; otherwise controls stay hidden. Screen-filling windows may have no outside space. Safari passed 300 visibility samples over 30 seconds under repeated title changes; broad beta still requires pointer/composite, edge-case and installation validation. See [compatibility](docs/compatibility.md) and [validation](docs/validation.md).
 
+The working branch contains a Preview 5 / build 6 candidate with browser-focused placement recovery and application status groups. It is not a published release; current measured gates are tracked in [STATUS](docs/STATUS.md).
+
 ## Use
 
 1. Install the app into Applications; launch that installed copy.
@@ -56,12 +58,12 @@ The following is debug-only and controls **only a disposable fixture matched by 
 ```sh
 ./script/build_and_run.sh --build
 ./script/install_local.sh
-open -n "$HOME/Applications/Rightnest.app" --args --verify-textedit "$PWD/.build/verification"
+open -g -n "$HOME/Applications/Rightnest.app" --args --verify-textedit "$PWD/.build/verification"
 ```
 
 The JSON report is written under that directory. It exercises real proxy NSButtons with `performClick`; this does not prove physical mouse hit testing or composite appearance. `--audit-compatibility <directory>` is a separate debug-only, read-only geometry audit of running normal apps. It records no titles, document paths or content. `--verify-app <report-directory> <bundle-id> <fixture-path>` reuses the fixture verifier for an explicitly prepared disposable window in another app. All developer entrypoints are excluded from release binaries.
 
-For a browser stress check, load [Checks/Fixtures/window-stability.html](Checks/Fixtures/window-stability.html) in a new single-tab Safari window or Chrome Guest window, then invoke the matching debug verifier with that fixture path. It observes visibility for 30 seconds before actions; keep that window in front. Multi-tab browser windows are rejected. Native AXDocument fixture shortcuts are restricted to TextEdit/Preview; other app types can require an explicit safe fixture verifier. A separate macOS Space does not isolate a shared app session; use an actually isolated test account/environment for uninterrupted verification.
+For a browser stress check, load [Checks/Fixtures/window-stability.html](Checks/Fixtures/window-stability.html) in a new single-tab Safari window or Chrome Guest window, then invoke the matching debug verifier with that fixture path. It observes visibility for 30 seconds before actions; keep that window in front. Add `--stability-seconds 1800` for the candidate long-session verifier: 50 geometry samples, 20 synthetic occlusion cycles, cumulative CPU windows and a total 30-minute session before actions. Use a freshly loaded fixture; its title changes at 5 Hz for 180 seconds, then becomes idle. `progress.json` reports the running phase. Synthetic occlusions do not substitute for actual volume/brightness HUD tests. A failed acceptance metric remains a failed gate even if the final action sequence succeeds. Multi-tab browser windows are rejected. Native AXDocument fixture shortcuts are restricted to TextEdit/Preview; other app types can require an explicit safe fixture verifier. A separate macOS Space does not isolate a shared app session; use an actually isolated test account/environment for uninterrupted verification.
 
 ## Contribute
 

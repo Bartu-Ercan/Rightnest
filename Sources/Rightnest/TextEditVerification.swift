@@ -166,6 +166,9 @@ enum TextEditVerification {
         do {
             guard AXIsProcessTrusted() else { throw Failure(message: "Accessibility permission missing") }
             report["permission"] = "granted"
+            report["os"] = ProcessInfo.processInfo.operatingSystemVersionString
+            report["build"] = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown"
+            report["application"] = fixtureApplicationID
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             try? FileManager.default.removeItem(at: directory.appendingPathComponent("result.json"))
             let fixture = browserFixture ?? directory.appendingPathComponent("Rightnest Window Verification.txt")

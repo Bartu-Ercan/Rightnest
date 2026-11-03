@@ -41,6 +41,7 @@ final class AccessibilityClient {
         return AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue) == .success
     }
     private(set) var ownPanelOcclusion = false
+    private var candidateObstructed = false
     private(set) var placementIssue = "Unverified title bar"
     #if DEBUG
     private var surfaceDiagnostic = ""
@@ -196,6 +197,8 @@ final class AccessibilityClient {
             return outside.contains(candidate) && outsideSurfaceClear(candidate, overlayNumber: overlayNumber)
         }
         let homeClear = ideal.map(clear) ?? false
+        let homeObstructed = candidateObstructed
+        let alternativeReason: PlacementAlternativeReason? = ideal == nil ? .noVerifiedTitlebar : homeClear ? nil : homeObstructed ? .obstruction : .unverifiedSurface
         let currentClear: Bool
         if let current { currentClear = current == ideal ? homeClear : clear(current) }
         else { currentClear = false }
@@ -210,7 +213,7 @@ final class AccessibilityClient {
         if ideal == nil { ideal = available }
         if let available { placementIssue = target.frame.contains(available) ? "Controls active" : "Controls outside window" }
         else if !screens.isEmpty { placementIssue = "No safe titlebar or outside space" }
-        return PlacementDecision(ideal: ideal, available: available, currentIsClear: currentClear)
+        return PlacementDecision(ideal: ideal, available: available, currentIsClear: currentClear, alternativeReason: alternativeReason)
     }
 
     // Inspect known layout containers; never infer that an unknown subtree is blank.
@@ -299,7 +302,7 @@ final class AccessibilityClient {
             backgrounds: verifiedBackgrounds, toolbars: toolbarFrames, spacers: navigationSpacers)
     }
     private func verifiedPlacement(_ target: WindowTarget, candidate: CGRect, overlayNumber: Int?, deadline: TimeInterval, backgrounds: [AXUIElement], toolbarFrames: [CGRect], navigationSpacers: [CGRect]) -> CGRect? {
-        ownPanelOcclusion = false
+        ownPanelOcclusion = false; candidateObstructed = false
         // Hit-test visible geometry too. A different window, button, or unknown node rejects placement.
         placementIssue = "Another surface covers the title bar"
         let system = AXUIElementCreateSystemWide()
@@ -334,12 +337,14 @@ final class AccessibilityClient {
                         if overlaySurfaceClear == nil { overlaySurfaceClear = visibleSurface(target, candidate: candidate, overlayNumber: overlayNumber) }
                         if overlaySurfaceClear == true { continue }
                     }
+                    candidateObstructed = true
                     placementIssue = "Another surface covers the title bar"; return nil
                 }
                 let role = value(hit, kAXRoleAttribute) as? String ?? "unknown role"
                 let ownerWindow = role == kAXWindowRole ? hit : element(hit, kAXWindowAttribute)
                 guard let ownerWindow, CFEqual(ownerWindow, target.window) else {
                     if let ownerWindow, let rect = frame(ownerWindow), WindowGeometry.valid(rect) { observedOcclusions.append(rect) }
+                    candidateObstructed = true
                     placementIssue = "Another window covers the title bar"; return nil
                 }
                 // Safari can return its WebArea for transparent native toolbar

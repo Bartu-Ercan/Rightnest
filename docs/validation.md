@@ -10,7 +10,7 @@
 ## Historical Preview 1 release gates
 
 - Actual pointer/composite visuals, drag/resize, menus/sheets, focus races and display/Spaces transitions.
-- Two additional daily-use apps. Current background/foreground audits reject Finder, Safari, Chrome and Preview; see compatibility.md.
+- Two additional daily-use apps. This early gate was subsequently met by the recorded Safari/Finder fixtures; later app evidence and current candidate gates are below and in compatibility.md.
 - Clean-user downloaded installation, Gatekeeper experience, update permission continuity for distributed packages, login-item registration.
 - One-hour soak, idle CPU target below 1%, stable RSS; older OS/device coverage.
 - XCTest requires full Xcode, unavailable on this host. Remote CI passed: https://github.com/Bartu-Ercan/Rightnest/actions/runs/41454033532 (9 XCTest cases, 34 standalone checks, arm64 release and artifact validation).
@@ -78,3 +78,11 @@ After the control-update suppression, the final Chrome 30s rerun (.build/verify-
 Final runtime source 8682e26 passed CI https://github.com/Bartu-Ercan/Rightnest/actions/runs/41529100917: 15 XCTest cases, 64 standalone checks, 24 native combinations, arm64 release and strict bundle validation. The final build-5 DMG with updated installation notes passed read-only mount, strict signature, arm64, icon, Applications-link and SHA checks. Installed release copy passed strict signature verification and was launched in the background.
 
 Preview 4 published: https://github.com/Bartu-Ercan/Rightnest/releases/tag/v0.1.0-preview.4. Release target 8643df3 has runtime sources identical to CI-tested 8682e26; later differences are documentation only. Public DMG and checksum re-downloaded under .build/download-preview-4; SHA-256 verification passed. This gh download does not test browser quarantine or a clean-user installation.
+
+## Preview 5 candidate (in progress)
+
+Source e5dcdba: [CI 41716615456](https://github.com/Bartu-Ercan/Rightnest/actions/runs/41716615456) passed 20 XCTest cases, 88 standalone checks, 24 native hover/layout combinations, arm64 release build/signature and debug-entrypoint exclusion. Local standalone/native checks and debug build also passed. This does not satisfy app/runtime release gates.
+
+Safari smoke3: 50 geometry samples p95 207.9 ms; 20 synthetic occlusion cycles, maximum return 437.7 ms; 60-second total session with 355 stable-window visible samples, then minimize, restore, fit, restore-frame and close all passed. Report: `.build/verify-p5-safari-smoke3/result.json` (content-free, local ignored evidence). Earlier failed smoke attempts are preserved locally and described in STATUS. Synthetic panels do not prove OS volume/brightness handling. The CUA media key attempt returned `keyNotFound("XF86AudioLowerVolume")`; no OS HUD cycle is counted from that attempt.
+
+A user-authorized 1800-second Safari session is running; no long-session result or CPU pass is claimed yet. Preview 5 has not been published.

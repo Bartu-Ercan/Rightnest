@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Preview 5 candidate / build 6
+
+- Separate primary and temporary placement; restore the primary corner after verified clearance, with pointer/press protection.
+- Replace repeated polling with notification-driven one-shot scheduling, bounded layout reuse and experimental backoff.
+- Prepare incomplete Electron accessibility trees once per process session; preserve application opt-outs.
+- Group applications as priority, system and experimental, with the last measured inspection result.
+- Add deterministic reflow tests and debug-only latency, occlusion, CPU and long-session verification. Release gates remain pending; see docs/STATUS.md.
+
 ## 0.1.0 Preview 4 — native toolbar compatibility
 
 - Recognize native Chromium tab-strip filler and scoped WhatsApp navigation spacers; correct disjoint native hit-test reports without accepting real button overlap.

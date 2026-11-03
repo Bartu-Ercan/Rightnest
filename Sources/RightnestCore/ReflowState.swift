@@ -1,12 +1,18 @@
 import Foundation
 import CoreGraphics
 
+public enum PlacementAlternativeReason: Sendable {
+    case obstruction, unverifiedSurface, noVerifiedTitlebar
+}
+
 public struct PlacementDecision: Sendable {
     public let ideal: CGRect?
     public let available: CGRect?
     public let currentIsClear: Bool
-    public init(ideal: CGRect?, available: CGRect?, currentIsClear: Bool) {
+    public let alternativeReason: PlacementAlternativeReason?
+    public init(ideal: CGRect?, available: CGRect?, currentIsClear: Bool, alternativeReason: PlacementAlternativeReason? = nil) {
         self.ideal = ideal; self.available = available; self.currentIsClear = currentIsClear
+        self.alternativeReason = alternativeReason ?? (ideal != nil && ideal != available ? .obstruction : nil)
     }
 }
 
@@ -40,7 +46,9 @@ public struct ReflowState: Sendable {
             return current
         }
         clearSince = nil
-        if decision.ideal != nil && transientSince == nil { transientSince = now }
+        if decision.alternativeReason == .obstruction {
+            if transientSince == nil { transientSince = now }
+        } else { transientSince = nil }
         if !decision.currentIsClear || current == nil { current = decision.available }
         return current
     }
