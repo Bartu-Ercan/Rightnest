@@ -70,3 +70,13 @@ Chrome launched through the native UI into a separate Guest window, exact local 
 Chrome's initial long attempt `.build/verify-p5-chrome-1800` failed before observation/actions: the native frame settled from the requested dimensions to a different actual frame, invalidating the verifier's fixed-origin expectation. `.build/verify-p5-chrome-actions` stopped during initial resize settling. No actions sent in either failure. After recording fresh/held AX references, `.build/verify-p5-chrome-geometry` PASSED 30s / 287 visible samples and all actions; both AX frame references were identical during settled preparation. This supports a startup-settling cause, not a stale AX-reference claim.
 
 Debug verifier now requires 500 ms continuously stable geometry/panel before observation and computes movement expectations from actual right/bottom geometry rather than assuming size never changes. Added debug-only `--measure-idle` for 30s warmup + five 60s cumulative CPU windows with 1 Hz cached status checks and fixture identity at boundaries; no fixture moves/HUD panels/window actions. Dedicated static window-idle.html avoids timer workload. All new flags remain excluded from release. These latest debug-only changes are not yet committed/CI-tested.
+
+### Optimized measurement preparation
+
+Normal unoptimized debug service with the static Chrome Guest fixture: first four CPU windows average 1.2237%, above target. Await fifth window. A build-only `--profile-build` mode now produces release-optimized DEBUG instrumentation for local CPU measurements; never distribute that bundle. package.sh always rebuilds without DEBUG and rejects test entrypoints. A macOS Bash 3.2 empty-array expansion issue was caught and removed before committing this script change.
+
+Cancellation is now rechecked immediately before Electron preparation and its AXManualAccessibility setter so an opt-out during a bounded tree query cannot start the automatic preparation afterward. This affects Electron-only cancellation; Safari/Chrome primary paths are unchanged. Latest local profiler source changes still need CI.
+
+Normal unoptimized debug idle measurement completed: `.build/measure-p5-chrome-idle/result.json`, five 60s windows after 30s warmup, mean 1.2119% (FAIL <1). Optimized DEBUG instrumentation is now installed from --profile-build and running `.build/measure-p5-chrome-idle-optimized`; configuration.json records the build flags. Do not distribute this installed measurement binary. Rebuild/package --release before final delivery.
+
+Local latest 92 standalone checks + 24 native hover combinations passed. CI 41720443181 for 8848014 passed (21 XCTest +92 standalone +24 native +release). The subsequent profiling script / Electron cancellation changes need the next CI run.

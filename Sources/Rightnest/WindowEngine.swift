@@ -80,7 +80,7 @@ actor WindowEngine {
         let revision = token
         var decision = client.placementDecision(next, overlayNumber: overlayNumber, screens: screens,
             current: reflow.current, forceLayout: forceLayout, electron: context?.electron ?? false)
-        if let context, context.electron,
+        if let context, context.electron, !Task.isCancelled,
            electronPreparation.shouldActivate(session: context.session, enabled: context.allowActivation, incomplete: client.incompleteTree),
            client.activateElectronAccessibility(pid: pid) {
             for delay in [100, 200] {

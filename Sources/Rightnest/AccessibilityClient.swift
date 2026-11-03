@@ -38,6 +38,7 @@ final class AccessibilityClient {
         let app = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(app, 0.08)
         if value(app, "AXManualAccessibility") as? Bool == true { return true }
+        guard !Task.isCancelled else { return false }
         return AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue) == .success
     }
     private(set) var ownPanelOcclusion = false

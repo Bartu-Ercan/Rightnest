@@ -46,5 +46,28 @@
     "qualification": "Interrupted when focus became Codex. No actions sent. Not a 30-minute pass. Instrumented idle CPU failed; normal service measurement pending."
   },
   "systemHUD": "Not verified. CUA media key unsupported; synthetic panels do not substitute for OS indicators.",
-  "chrome": "Guest fixture test started; no result yet."
+  "chrome": "Long-session gate remains pending after initial geometry test failure; short action fixture passed.",
+  "chromeActions": {
+    "result": "passed",
+    "stability": "passed: 287 visible samples; total session 30 seconds including declared geometry/HUD phases",
+    "minimize": "passed",
+    "restore": "passed",
+    "fit": "passed",
+    "restoreFrame": "passed",
+    "close": "passed",
+    "originalFrame": "{{80, 90}, {1310, 700}}",
+    "expectedFit": "{{0, 33}, {1470, 865}}",
+    "runtimeCore": "f2dbe31 (settling diagnostic verifier before 8848014)",
+    "qualification": "30-second prepared Guest fixture, not a 30-minute session; earlier geometry/initial-settling failures retained locally."
+  },
+  "normalUnoptimizedCPU": {
+    "application": "com.google.Chrome",
+    "meanCPUPercent": "1.211864814690849",
+    "phase": "idle CPU",
+    "result": "failed CPU target",
+    "windowCPUPercent": "1.2330016018574634,1.2599077855155145,1.1821815631800037,1.219809648918387,1.1644234739828763",
+    "windows": "5",
+    "workload": "normal debug service; 1 Hz status checks, AX fixture identity only at boundaries"
+  },
+  "normalOptimizedCPU": "Running; release optimization with DEBUG instrumentation. No pass claimed yet."
 }

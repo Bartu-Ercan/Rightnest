@@ -2,16 +2,21 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 MODE="${1:-run}"
-case "$MODE" in run|--verify|--build|--debug|--logs|--telemetry|--release) ;; *) echo "Usage: $0 [--build|--release|--verify|--debug|--logs|--telemetry]" >&2; exit 2;; esac
+case "$MODE" in run|--verify|--build|--debug|--logs|--telemetry|--release|--profile-build) ;; *) echo "Usage: $0 [--build|--release|--profile-build|--verify|--debug|--logs|--telemetry]" >&2; exit 2;; esac
 CONFIG=debug
-if [[ "$MODE" == "--release" ]]; then CONFIG=release; fi
-swift build -c "$CONFIG" --arch arm64 --product Rightnest
+if [[ "$MODE" == "--release" || "$MODE" == "--profile-build" ]]; then CONFIG=release; fi
+# Optimized instrumentation is for local measurement only; package.sh rebuilds without DEBUG.
+if [[ "$MODE" == "--profile-build" ]]; then
+    swift build -c "$CONFIG" --arch arm64 --product Rightnest -Xswiftc -DDEBUG
+else
+    swift build -c "$CONFIG" --arch arm64 --product Rightnest
+fi
 BIN="$(swift build -c "$CONFIG" --arch arm64 --show-bin-path)/Rightnest"
 DIST_BUNDLE="$PWD/dist/Rightnest.app"
 BUILD_STAGE="$(mktemp -d "${TMPDIR:-/tmp/}starboard-build.XXXXXX")"
 trap 'rm -rf "$BUILD_STAGE"' EXIT
 BUNDLE="$BUILD_STAGE/Rightnest.app"
-if [[ "$MODE" != "--build" && "$MODE" != "--release" ]]; then
+if [[ "$MODE" != "--build" && "$MODE" != "--release" && "$MODE" != "--profile-build" ]]; then
     pkill -x Rightnest >/dev/null 2>&1 || true
 fi
 mkdir -p "$BUNDLE/Contents/MacOS"
@@ -61,12 +66,12 @@ mkdir -p "$PWD/dist"
 if [[ -d "$DIST_BUNDLE" ]]; then rm -rf "$DIST_BUNDLE"; fi
 /usr/bin/ditto --norsrc --noextattr "$BUNDLE" "$DIST_BUNDLE"
 BUNDLE="$DIST_BUNDLE"
-if [[ "$MODE" != "--build" && "$MODE" != "--release" ]]; then
+if [[ "$MODE" != "--build" && "$MODE" != "--release" && "$MODE" != "--profile-build" ]]; then
     ./script/install_local.sh
     BUNDLE="$HOME/Applications/Rightnest.app"
 fi
 case "$MODE" in
- --build|--release) echo "$BUNDLE";;
+ --build|--release|--profile-build) echo "$BUNDLE";;
  --debug) lldb -- "$BUNDLE/Contents/MacOS/Rightnest";;
  --logs|--telemetry|--release) open -n "$BUNDLE"; /usr/bin/log stream --info --style compact --predicate 'process == "Rightnest"';;
  --verify) open -n "$BUNDLE"; sleep 2; pgrep -x Rightnest >/dev/null; echo "Rightnest process is running";;
