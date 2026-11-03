@@ -44,6 +44,13 @@ final class ReflowTests: XCTestCase {
         state.reset()
         XCTAssertEqual(state.update(.init(ideal: home, available: home, currentIsClear: false), now: 1, pointerInside: false), home)
     }
+    func testUnverifiedNativeCandidateUsesUnknownBackoff() {
+        var state = ReflowState()
+        for delay in [1.0, 2.0, 4.0] {
+            XCTAssertNil(state.update(.init(ideal: home, available: nil, currentIsClear: false, alternativeReason: .unverifiedSurface), now: 0, pointerInside: false))
+            XCTAssertEqual(state.retryDelay(now: 0, experimental: true), delay)
+        }
+    }
     func testElectronActivationIsScopedToEnabledIncompleteProcessSession() {
         var preparation = ElectronPreparation()
         XCTAssertFalse(preparation.shouldActivate(session: "pid:launch", enabled: false, incomplete: true))

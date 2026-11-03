@@ -32,7 +32,7 @@ public struct ReflowState: Sendable {
         if pointerInside { wasHovered = true; pointerReleasedAt = nil }
         else if wasHovered { wasHovered = false; pointerReleasedAt = now }
         if ideal != decision.ideal { ideal = decision.ideal; clearSince = nil }
-        if decision.ideal == nil && decision.available == nil { unknownFailures = min(3, unknownFailures+1) }
+        if decision.available == nil && decision.alternativeReason != .obstruction { unknownFailures = min(3, unknownFailures+1) }
         else { unknownFailures = 0 }
         if let home = decision.ideal, decision.available == home {
             if current == home || transientSince == nil {

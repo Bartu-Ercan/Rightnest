@@ -175,3 +175,10 @@ var uncertainSurface = ReflowState()
 _ = uncertainSurface.update(PlacementDecision(ideal: home, available: moved, currentIsClear: false, alternativeReason: .unverifiedSurface), now: 0, pointerInside: false)
 require(uncertainSurface.retryDelay(now: 0, experimental: true) == 0.5, "Unverified app surfaces do not create endless transient burst polling")
 print("Alternative reason scheduling: 1 check passed")
+
+var incompleteNative = ReflowState()
+for expected in [1.0, 2.0, 4.0] {
+    _ = incompleteNative.update(PlacementDecision(ideal: home, available: nil, currentIsClear: false, alternativeReason: .unverifiedSurface), now: 0, pointerInside: false)
+    require(incompleteNative.retryDelay(now: 0, experimental: true) == expected, "An unverified structural candidate also backs off when no usable placement exists")
+}
+print("Unverified native candidate backoff: 3 checks passed")
