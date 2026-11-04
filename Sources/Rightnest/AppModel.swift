@@ -161,7 +161,11 @@ final class AppModel: NSObject, ObservableObject, NSWindowDelegate {
         if let index = CommandLine.arguments.firstIndex(of: "--verify-app"), CommandLine.arguments.indices.contains(index + 3) {
             let directory = URL(fileURLWithPath: CommandLine.arguments[index + 1], isDirectory: true)
             let appID = CommandLine.arguments[index + 2]
-            let fixture = URL(fileURLWithPath: CommandLine.arguments[index + 3])
+            let raw = CommandLine.arguments[index + 3]
+            let supplied = URL(string: raw)
+            let fixture: URL
+            if let supplied, supplied.scheme == "http", supplied.host == "127.0.0.1" { fixture = supplied }
+            else { fixture = URL(fileURLWithPath: raw) }
             Task { await TextEditVerification.run(model: self, directory: directory, browserFixture: fixture, fixtureApplicationID: appID) }
         }
         if let index = CommandLine.arguments.firstIndex(of: "--verify-finder"), CommandLine.arguments.indices.contains(index + 2) {
