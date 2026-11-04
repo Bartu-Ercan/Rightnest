@@ -41,3 +41,9 @@ Accepted user plan, 2026-11-03. Candidate target: Preview 5 / build 6. This is a
 ## Publication
 
 Publish Preview 5 only after gates pass. Update README, compatibility, validation and STATUS with tested versions, source/configuration and limitations. Validate package signature/architecture and downloaded checksum. Current results and open gates: STATUS.md and verification-preview5.json. Original broad-beta obligations remain in plan-audit.md.
+
+## Physical indicator check on the normal installed build
+
+Use a normal Safari window, then a normal Chrome window, with Rightnest visible. In each browser perform10volume and10brightness indicator cycles using the Mac keyboard. Alternate up/down to avoid leaving settings far from their starting values; let the indicator fully disappear between cycles. Check a geometry where the indicator actually overlaps Rightnest's preferred corner. Record browser/version, cycle counts, any overlap, disappearance or failure to return to the preferred corner after the indicator disappears. Never close personal tabs/documents for this test.
+
+These are human-observed checks; they do not independently measure the <=500ms target. Automated synthetic timing remains separate. If keyboard indicators cannot be produced on the test hardware, record the gate as unverified.
