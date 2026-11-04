@@ -230,6 +230,6 @@
     "activeSecondsHeld": 531,
     "visibleSamplesHeld": 4805,
     "report": ".build/verify-p5-safari-active1800/progress.json",
-    "qualification": "Owned Finder window focused; active/sample counts held while paused seconds advanced. CUA Raise/AX click/key input did not return system foreground ownership; Dock access timed out. User asked to foreground Safari; no programmatic activation workaround."
+    "qualification": "After opening the owned Finder window, active/sample counts held while paused seconds advanced. CUA Raise/AX click/key input did not restore verified Safari foreground ownership; Dock timed out. Rightnest Settings appeared during further CUA attempts, so interactive attempts stopped. User asked to foreground Safari; resume remains unverified."
   }
 }
