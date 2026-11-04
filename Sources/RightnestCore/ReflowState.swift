@@ -48,6 +48,9 @@ public struct ReflowState: Sendable {
         clearSince = nil
         if decision.alternativeReason == .obstruction {
             if transientSince == nil { transientSince = now }
+            // Temporary occlusion never changes the strip's anchor or size.
+            current = nil
+            return nil
         } else { transientSince = nil }
         if !decision.currentIsClear || current == nil { current = decision.available }
         return current

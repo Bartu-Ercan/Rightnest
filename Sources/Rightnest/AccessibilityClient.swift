@@ -204,6 +204,10 @@ final class AccessibilityClient {
         }
         let homeClear = ideal.map(clear) ?? false
         let homeObstructed = candidateObstructed
+        if ideal != nil && !homeClear && homeObstructed {
+            placementIssue = "Another surface covers the title bar"
+            return PlacementDecision(ideal: ideal, available: nil, currentIsClear: false, alternativeReason: .obstruction)
+        }
         let alternativeReason: PlacementAlternativeReason? = ideal == nil ? .noVerifiedTitlebar : homeClear ? nil : homeObstructed ? .obstruction : .unverifiedSurface
         let currentClear: Bool
         if let current { currentClear = current == ideal ? homeClear : clear(current) }

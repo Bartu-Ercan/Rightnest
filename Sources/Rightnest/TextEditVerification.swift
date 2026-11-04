@@ -111,14 +111,15 @@ enum TextEditVerification {
             for _ in 0..<20 {
                 try verifyOwner()
                 hud.orderFrontRegardless()
-                try await wait("Controls overlapped synthetic HUD", pollMilliseconds: 10) {
-                    model.verificationPanelFrame.map { !$0.intersects(hudAX) } ?? false
+                try await wait("Controls moved or stayed visible under synthetic HUD", pollMilliseconds: 10) {
+                    model.verificationPanelFrame == nil
                 }
                 let cleared = ProcessInfo.processInfo.systemUptime
                 hud.orderOut(nil)
                 try await wait("Controls did not return to original corner", pollMilliseconds: 10) { model.verificationPanelFrame == home }
                 returns.append((ProcessInfo.processInfo.systemUptime-cleared)*1000)
             }
+            report["syntheticHUDBehavior"] = "hidden while covered; exact original anchor and size restored"
             report["syntheticHUDCycles"] = "20"
             report["HUDReturnP95Milliseconds"] = String(percentile95(returns))
             report["HUDReturnMaximumMilliseconds"] = String(returns.max() ?? 0)

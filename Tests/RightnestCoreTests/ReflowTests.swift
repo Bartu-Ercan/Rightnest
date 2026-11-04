@@ -5,13 +5,13 @@ import XCTest
 final class ReflowTests: XCTestCase {
     let home = CGRect(x: 700, y: 40, width: 102, height: 26)
     let alternate = CGRect(x: 550, y: 40, width: 102, height: 26)
-    func testTransientObstacleDoesNotReplaceHome() {
+    func testTransientObstacleHidesWithoutMovingOrShrinking() {
         var state = ReflowState()
         XCTAssertEqual(state.update(.init(ideal: home, available: home, currentIsClear: false), now: 0, pointerInside: false), home)
-        XCTAssertEqual(state.update(.init(ideal: home, available: alternate, currentIsClear: false), now: 1, pointerInside: false), alternate)
+        XCTAssertEqual(state.update(.init(ideal: home, available: alternate, currentIsClear: false), now: 1, pointerInside: false), nil)
         let clear = PlacementDecision(ideal: home, available: home, currentIsClear: true)
-        XCTAssertEqual(state.update(clear, now: 2, pointerInside: false), alternate)
-        XCTAssertEqual(state.update(clear, now: 2.19, pointerInside: false), alternate)
+        XCTAssertEqual(state.update(clear, now: 2, pointerInside: false), nil)
+        XCTAssertEqual(state.update(clear, now: 2.19, pointerInside: false), nil)
         XCTAssertEqual(state.update(clear, now: 2.21, pointerInside: false), home)
     }
     func testHoverDefersOptionalReturnButDoesNotPermitCollision() {
@@ -19,9 +19,9 @@ final class ReflowTests: XCTestCase {
         _ = state.update(.init(ideal: home, available: alternate, currentIsClear: false), now: 0, pointerInside: false)
         let clear = PlacementDecision(ideal: home, available: home, currentIsClear: true)
         _ = state.update(clear, now: 1, pointerInside: true)
-        XCTAssertEqual(state.update(clear, now: 2, pointerInside: true), alternate)
-        XCTAssertEqual(state.update(clear, now: 3, pointerInside: false), alternate)
-        XCTAssertEqual(state.update(clear, now: 3.14, pointerInside: false), alternate)
+        XCTAssertEqual(state.update(clear, now: 2, pointerInside: true), nil)
+        XCTAssertEqual(state.update(clear, now: 3, pointerInside: false), nil)
+        XCTAssertEqual(state.update(clear, now: 3.14, pointerInside: false), nil)
         XCTAssertEqual(state.update(clear, now: 3.16, pointerInside: false), home)
         XCTAssertNil(state.update(.init(ideal: home, available: nil, currentIsClear: false), now: 4, pointerInside: true))
     }
@@ -32,8 +32,18 @@ final class ReflowTests: XCTestCase {
         _ = state.update(blocked, now: 0, pointerInside: false)
         _ = state.update(clear, now: 1, pointerInside: false)
         _ = state.update(blocked, now: 1.1, pointerInside: false)
-        XCTAssertEqual(state.update(clear, now: 1.3, pointerInside: false), alternate)
+        XCTAssertEqual(state.update(clear, now: 1.3, pointerInside: false), nil)
         XCTAssertEqual(state.update(clear, now: 1.51, pointerInside: false), home)
+    }
+    func testCompactAlternativeDoesNotReplaceCoveredHome() {
+        var state = ReflowState()
+        _ = state.update(.init(ideal: home, available: home, currentIsClear: false), now: 0, pointerInside: false)
+        let compact = CGRect(x: 600, y: 40, width: 66, height: 26)
+        XCTAssertNil(state.update(.init(ideal: home, available: compact, currentIsClear: true), now: 1, pointerInside: false))
+        XCTAssertNil(state.update(.init(ideal: home, available: compact, currentIsClear: true), now: 6, pointerInside: false))
+        let clear = PlacementDecision(ideal: home, available: home, currentIsClear: false)
+        XCTAssertNil(state.update(clear, now: 7, pointerInside: false))
+        XCTAssertEqual(state.update(clear, now: 7.21, pointerInside: false), home)
     }
     func testUnknownExperimentalBackoffAndReset() {
         var state = ReflowState()

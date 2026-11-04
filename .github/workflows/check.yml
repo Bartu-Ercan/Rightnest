@@ -6,7 +6,8 @@ permissions:
   contents: read
 jobs:
   macos:
-    runs-on: macos-15
+    # Intel host avoids arm64 runner capacity failures; release stays arm64.
+    runs-on: macos-15-intel
     steps:
       - uses: actions/checkout@v4
       - name: Toolchain
