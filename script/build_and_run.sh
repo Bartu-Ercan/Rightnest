@@ -32,7 +32,7 @@ cat > "$BUNDLE/Contents/Info.plist" <<'PLIST'
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>0.1.0</string>
 <key>CFBundleVersion</key><string>6</string>
-<key>RightnestReleasesURL</key><string>https://github.com/Bartu-Ercan/Rightnest/releases</string>
+<key>RightnestReleasesURL</key><string>https://github.com/Bartu-Ercan/Rightnest/releases/latest</string>
 <key>CFBundleDevelopmentRegion</key><string>en</string>
 <key>CFBundleLocalizations</key><array><string>en</string><string>tr</string></array>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
@@ -46,6 +46,8 @@ if [[ -f "$PWD/Assets/AppIcon.icns" ]]; then
     cp "$PWD/Assets/AppIcon.icns" "$BUNDLE/Contents/Resources/AppIcon.icns"
     /usr/libexec/PlistBuddy -c 'Add :CFBundleIconFile string AppIcon' "$BUNDLE/Contents/Info.plist"
 fi
+mkdir -p "$BUNDLE/Contents/Resources"
+cp "$PWD/LICENSE" "$BUNDLE/Contents/Resources/LICENSE.txt"
 /usr/bin/xattr -cr "$BUNDLE"
 STARBOARD_SIGNING_IDENTITY="${RIGHTNEST_SIGNING_IDENTITY:-${STARBOARD_SIGNING_IDENTITY:-}}"
 LOCAL_SIGNING_DIR="$HOME/.local/share/starboard-signing"

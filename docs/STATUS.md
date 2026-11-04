@@ -4,6 +4,8 @@ Root: `~/Desktop/vibecoding/Rightnest`. Rightnest / A Corner. SwiftUI + AppKit +
 
 ## Current state — 2026-11-04
 
+Public release preparation: user explicitly requested the current build as a normal GitHub **Latest** release, plus a custom two-item installer and a download-oriented repository. This overrides the earlier preview-only publication gate, not the unresolved validation facts. Planned publication: tagv0.1.0,title“Rightnest0.1.0—Early Access”,build6. Release not public until API confirmation. App behavior remainsdfdaa4e; packaging now adds the MIT license inside the signed app, a direct/latest release URL and a Retina custom Finder layout. Build-only dependencies are pinned; they are not app runtime dependencies.
+
 - Branch `codex/feasibility`; code **dfdaa4e**. User revised HUD behavior: hide the native strip at its existing anchor and width while covered; never slide left or shrink for a temporary foreign surface. Initial toolbar layout/collision rules remain.
 - **CI41884081792 passed**:23XCTest,100standalone,24native hover/layout,4native press, monitor compile,arm64release/signature/developer-entrypoint checks. Hostmacos-15-intel; release cross-builtarm64. Previous41860586078/41861124832/41862549450 jobs never acquired anarm64runner and were cancelled with capacity annotations; no source-test failures were reported there.
 - Published **Preview4/build5** only; Preview5/build6 remains unpublished. Current package rebuilt fromdfdaa4e. Normal release installed/launched at `~/Applications/Rightnest.app`; strict signature and developer-entrypoint exclusion passed. DMG read-only mount,arm64,build6,icon,Applications link and checksum passed.

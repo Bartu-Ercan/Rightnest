@@ -1,12 +1,14 @@
 # Changelog
 
-## Unreleased — Preview 5 candidate / build 6
+## 0.1.0 — Early access / build 6
 
 - Keep the native strip at its original anchor and size during temporary occlusion: hide while covered, then reappear after verified clearance; no lateral movement or compact fallback for a covering HUD.
 - Replace repeated polling with notification-driven one-shot scheduling, bounded layout reuse and experimental backoff.
 - Prepare incomplete Electron accessibility trees once per process session; preserve application opt-outs.
 - Group applications as priority, system and experimental, with the last measured inspection result.
-- Add deterministic reflow tests and debug-only latency, occlusion, CPU and long-session verification. Release gates remain pending; see docs/STATUS.md.
+- Add deterministic reflow tests and debug-only latency, occlusion, CPU and long-session verification. Open validation limits remain in docs/STATUS.md.
+- Add a custom Retina drag-to-Applications installer with only the app and Applications visible; include the MIT license inside the signed app.
+- Make installation and the latest release the main GitHub entry points.
 
 ## 0.1.0 Preview 4 — native toolbar compatibility
 

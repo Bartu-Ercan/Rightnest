@@ -26,3 +26,7 @@ The original plan is **not complete**. Limited developer previews exist; they ar
 No automatic memory export, cloud sync, telemetry, account/backend or paid signing membership was added. Decisions and actual evidence remain in this repository.
 
 Additional user request: automatic evaluation of new apps, compact verified placement and yellow/green/red hover implemented in Preview 3 source. App-level exclusions remain available. This is not a universal-compatibility claim. Native app/stability/settings refinement is recorded in design-popular-apps.md. See design-automatic-controls.md and current STATUS.md for release/CI evidence.
+
+## Publication decision — 2026-11-04
+
+The user explicitly requested a normal GitHub Latest release of the current build and an end-user installer. Version0.1.0 is published as **early access**, with the unresolved validation limits in README and release notes. This supersedes the earlier “do not publish Preview5” gate; it does not turn incomplete physical/clean-user/device checks into passes or complete the original broad-beta plan. The custom DMG retains Finder’s system frame and contains only the signed app and Applications shortcut as visible items; its background/layout are customized.

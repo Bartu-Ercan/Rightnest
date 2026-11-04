@@ -27,10 +27,20 @@ jobs:
           codesign --verify --strict dist/Rightnest.app
           lipo dist/Rightnest.app/Contents/MacOS/Rightnest -verify_arch arm64
           if strings dist/Rightnest.app/Contents/MacOS/Rightnest | grep -E -- '--verify-textedit|--verify-safari|--verify-finder|--verify-app|--audit-compatibility|--stability-seconds|--measure-idle'; then exit 1; fi
+      - name: Installer artwork
+        run: swift script/render_installer.swift
+      - name: Custom installer image
+        run: |
+          python3 -m venv .build/dmg-tools
+          .build/dmg-tools/bin/pip install -r script/packaging-requirements.txt
+          ./script/package.sh
       - name: Archive bundle preserving permissions
         run: ditto -c -k --keepParent dist/Rightnest.app dist/Rightnest-ci.zip
       - uses: actions/upload-artifact@v4
         with:
           name: Rightnest-unsigned-ci-build
-          path: dist/Rightnest-ci.zip
+          path: |
+            dist/Rightnest-ci.zip
+            dist/Rightnest-*-arm64.dmg
+            dist/Rightnest-*-arm64.dmg.sha256
           retention-days: 7
