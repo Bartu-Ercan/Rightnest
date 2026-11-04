@@ -208,11 +208,11 @@
     "qualification": "Owned blank window. Same-target, measured native-toolbar disjoint AXScrollArea correction; not a general exception for content groups."
   },
   "productionPackage": {
-    "source": "b686133",
+    "source": "3a2c05a",
     "build": 6,
     "configuration": "release without DEBUG",
     "image": "Rightnest-0.1.0-preview-arm64.dmg",
-    "sha256": "3dfa5edad6c6ffffd1d084bc1b96c224d93ac59ce4d6309758582aae07def047",
+    "sha256": "3e09a06a6197b49676079865715e03908594c99076476c3bd2f9c8b822f24817",
     "localChecks": [
       "DMG checksum",
       "read-only mount",
