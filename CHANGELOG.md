@@ -2,7 +2,7 @@
 
 ## Unreleased — Preview 5 candidate / build 6
 
-- Separate primary and temporary placement; restore the primary corner after verified clearance, with pointer/press protection.
+- Keep the native strip at its original anchor and size during temporary occlusion: hide while covered, then reappear after verified clearance; no lateral movement or compact fallback for a covering HUD.
 - Replace repeated polling with notification-driven one-shot scheduling, bounded layout reuse and experimental backoff.
 - Prepare incomplete Electron accessibility trees once per process session; preserve application opt-outs.
 - Group applications as priority, system and experimental, with the last measured inspection result.

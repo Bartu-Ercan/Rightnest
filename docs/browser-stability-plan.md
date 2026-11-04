@@ -1,6 +1,6 @@
 # Safari / Chrome stability acceptance
 
-Accepted user plan, 2026-11-03. Candidate target: Preview 5 / build 6. This is a gate list, not a list of passed tests.
+Accepted user plan, 2026-11-03; transient indicator policy revised by user feedback on2026-11-04. Candidate target: Preview 5 / build 6. This is a gate list, not a list of passed tests.
 
 ## Scope
 
@@ -11,7 +11,7 @@ Accepted user plan, 2026-11-03. Candidate target: Preview 5 / build 6. This is a
 
 ## Engine requirements
 
-- Distinguish ideal/temporary placement and alternative reason. Return after 200 ms continuous clearance; hold while hovered/pressed and 150 ms after pointer exit. Unsafe placement hides immediately. No movement animation.
+- Distinguish the structural anchor and the reason it is unavailable. Temporary foreign occlusion hides the strip without moving or shrinking it. Reappear at the identical anchor and size after 200 ms continuous clearance; hold while hovered/pressed and 150 ms after pointer exit. Unsafe placement hides immediately. No movement animation.
 - Focus/window changes inspect immediately; geometry hides and settles for 80 ms. Transient probes: 100 ms for five seconds, then 250 ms. Clear-area return uses its exact remaining deadline.
 - Normal layout/capability caches last at most one second. Light checks validate identity, geometry and surfaces. Unknown experimental layouts back off 1/2/4 seconds; new focus/window/content events interrupt the wait.
 - Queries remain serial and bounded; discard cancelled/stale work. Revalidate every action independently.
@@ -44,6 +44,6 @@ Publish Preview 5 only after gates pass. Update README, compatibility, validatio
 
 ## Physical indicator check on the normal installed build
 
-Use a normal Safari window, then a normal Chrome window, with Rightnest visible. In each browser perform10volume and10brightness indicator cycles using the Mac keyboard. Alternate up/down to avoid leaving settings far from their starting values; let the indicator fully disappear between cycles. Check a geometry where the indicator actually overlaps Rightnest's preferred corner. Record browser/version, cycle counts, any overlap, disappearance or failure to return to the preferred corner after the indicator disappears. Never close personal tabs/documents for this test.
+Use a normal Safari window, then a normal Chrome window, with Rightnest visible. In each browser perform10volume and10brightness indicator cycles using the Mac keyboard. Alternate up/down to avoid leaving settings far from their starting values; let the indicator fully disappear between cycles. Check a geometry where the indicator actually overlaps Rightnest's preferred corner. Record browser/version, cycle counts, any overlap, lateral movement, narrowing, or failure to reappear at the identical corner and size after the indicator disappears. Brief hiding while covered is now expected. Never close personal tabs/documents for this test.
 
 These are human-observed checks; they do not independently measure the <=500ms target. Automated synthetic timing remains separate. If keyboard indicators cannot be produced on the test hardware, record the gate as unverified.

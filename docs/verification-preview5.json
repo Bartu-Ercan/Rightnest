@@ -45,7 +45,13 @@
     "actionTrace": "",
     "qualification": "Interrupted when focus became Codex. No actions sent. Not a 30-minute pass. Instrumented idle CPU failed; normal service measurement pending."
   },
-  "systemHUD": "Not verified. CUA media key unsupported; synthetic panels do not substitute for OS indicators.",
+  "systemHUD": {
+    "evidence": "user reported physical indicators in Safari and Chrome on the prior normal build",
+    "observation": "Both moved left and returned quickly. Safari narrowed unattractively; Chrome lateral movement also disliked.",
+    "cycleCounts": "not explicitly confirmed in the reply",
+    "timing": "qualitative; no measured physical-HUD milliseconds",
+    "decision": "superseded by hide at unchanged native anchor/size; new actual hardware behavior not yet reconfirmed"
+  },
   "chrome": "1800s Guest fixture/all actions passed; held-press guard and latest native accessibility-press 30s regressions passed. Actual OS HUD and richer window cases remain open.",
   "chromeActions": {
     "result": "passed",
@@ -172,12 +178,14 @@
     "source": "174d4d0 optimized DEBUG"
   },
   "safariCurrent": "1800 active-second session and all final fixture actions passed. No Safari verifier currently running.",
-  "latestSource": "b686133",
+  "latestSource": "dfdaa4e",
   "latestCI": {
-    "run": 41770037293,
+    "run": 41884081792,
+    "source": "dfdaa4e",
     "result": "passed",
-    "XCTest": 22,
-    "standaloneChecks": 96,
+    "host": "macos-15-intel; release cross-built arm64",
+    "XCTest": 23,
+    "standaloneChecks": 100,
     "nativeHoverCombinations": 24,
     "nativePressChecks": 4,
     "externalMonitorCompile": "passed",
@@ -208,11 +216,11 @@
     "qualification": "Owned blank window. Same-target, measured native-toolbar disjoint AXScrollArea correction; not a general exception for content groups."
   },
   "productionPackage": {
-    "source": "3a2c05a",
+    "source": "dfdaa4e",
     "build": 6,
     "configuration": "release without DEBUG",
     "image": "Rightnest-0.1.0-preview-arm64.dmg",
-    "sha256": "3e09a06a6197b49676079865715e03908594c99076476c3bd2f9c8b822f24817",
+    "sha256": "c04baf2cd975eed029fc4d6b4e30fabe34406f6dd95adf12c11d901663a92fff",
     "localChecks": [
       "DMG checksum",
       "read-only mount",
@@ -332,11 +340,23 @@
     "qualification": "Prepared single-tab Guest loopback fixture after user foregrounded it; all native AX proxy actions passed. Separate from earlier foreign-Finder-surface rejection, which is preserved. Not physical pointer or actual OS HUD proof."
   },
   "normalInstalledRelease": {
-    "source": "3a2c05a",
+    "source": "dfdaa4e",
     "build": 6,
     "location": "~/Applications/Rightnest.app",
     "signature": "strict verification passed",
     "developerEntryPoints": "absent",
-    "temporaryFixtureServer": "stopped"
+    "temporaryFixtureServer": "stopped",
+    "launch": "process observed"
+  },
+  "fixedCornerRefinement": {
+    "source": "dfdaa4e",
+    "policy": "temporary foreign occlusion hides native controls; no alternate position or compact width; restore exact anchor/size after continuous clearance",
+    "localChecks": "100 standalone,24 hover/layout,4 native press passed",
+    "integrationAttempt": {
+      "report": ".build/verify-p5-safari-pinned/result.json",
+      "result": "failed before observation/actions",
+      "reason": "system AX hit returned com.openai.codex/AXWindow over owned Safari fixture",
+      "qualification": "No new browser synthetic pass claimed; do not ignore foreign surfaces or bypass Codex computer-use restriction."
+    }
   }
 }
