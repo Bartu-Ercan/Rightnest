@@ -51,6 +51,19 @@ final class ReflowTests: XCTestCase {
             XCTAssertEqual(state.retryDelay(now: 0, experimental: true), delay)
         }
     }
+    #if DEBUG
+    func testObservationDurationExcludesFocusPauses() {
+        var clock = VerificationClock(now: 0, initialActiveSeconds: 0)
+        clock.advance(now: 1, active: true)
+        clock.advance(now: 10, active: false)
+        clock.advance(now: 20, active: false)
+        clock.advance(now: 21, active: true)
+        XCTAssertEqual(clock.activeSeconds, 1)
+        clock.advance(now: 22, active: true)
+        XCTAssertEqual(clock.activeSeconds, 2)
+        XCTAssertEqual(clock.pausedSeconds, 20)
+    }
+    #endif
     func testElectronActivationIsScopedToEnabledIncompleteProcessSession() {
         var preparation = ElectronPreparation()
         XCTAssertFalse(preparation.shouldActivate(session: "pid:launch", enabled: false, incomplete: true))

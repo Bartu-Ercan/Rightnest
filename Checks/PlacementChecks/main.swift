@@ -182,3 +182,17 @@ for expected in [1.0, 2.0, 4.0] {
     require(incompleteNative.retryDelay(now: 0, experimental: true) == expected, "An unverified structural candidate also backs off when no usable placement exists")
 }
 print("Unverified native candidate backoff: 3 checks passed")
+
+#if DEBUG
+var observationClock = VerificationClock(now: 0, initialActiveSeconds: 0)
+observationClock.advance(now: 1, active: true)
+require(observationClock.activeSeconds == 1, "Owned foreground time counts")
+observationClock.advance(now: 10, active: false)
+observationClock.advance(now: 20, active: false)
+require(observationClock.activeSeconds == 1 && observationClock.pausedSeconds == 19, "Paused time never satisfies observation duration")
+observationClock.advance(now: 21, active: true)
+require(observationClock.activeSeconds == 1, "A resume transition is conservatively excluded")
+observationClock.advance(now: 22, active: true)
+require(observationClock.activeSeconds == 2 && observationClock.pausedSeconds == 20, "Only stable resumed foreground time counts")
+print("Active observation clock: 4 checks passed")
+#endif

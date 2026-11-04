@@ -28,8 +28,7 @@ final class ControlPanel: NSPanel {
     #if DEBUG
     func invokeForVerification(_ action: WindowAction) -> Bool {
         guard isVisible, let button = buttons[action], button.isEnabled else { return false }
-        button.performClick(nil)
-        return true
+        return button.accessibilityPerformPress()
     }
     static func verifyHeldPressRouting() -> Int {
         let panel = ControlPanel()
@@ -38,6 +37,7 @@ final class ControlPanel: NSPanel {
         var origin = 0, replacement = 0
         panel.action = { _ in origin += 1 }
         button.withHeldPress {
+            precondition(!button.accessibilityPerformPress(), "A second accessibility press cannot replace a held gesture")
             panel.show(at: panel.frame, enabled: [.minimize]) { _ in replacement += 1 }
             button.performClick(nil)
             precondition(origin == 1 && replacement == 0, "A held press keeps its original handler")
@@ -51,7 +51,7 @@ final class ControlPanel: NSPanel {
             button.performClick(nil)
             precondition(origin == 1 && replacement == 0, "Moving during a held press cancels instead of retargeting")
         }
-        return 3
+        return 4
     }
     #endif
     override func orderOut(_ sender: Any?) {
@@ -157,6 +157,13 @@ private final class ControlButton: NSButton {
         trackingPress = true
         defer { trackingPress = false }
         super.mouseDown(with: event)
+    }
+    override func accessibilityPerformPress() -> Bool {
+        guard isEnabled, !trackingPress else { return false }
+        trackingPress = true
+        defer { trackingPress = false }
+        super.performClick(nil)
+        return true
     }
     override var isEnabled: Bool { didSet { updateHoverAppearance() } }
     override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); updateHoverAppearance() }

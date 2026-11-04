@@ -69,7 +69,7 @@ enum TextEditVerification {
         }
         func verifyWritableFixture() throws {
             try verifyOwner()
-            guard matchesFixture(target.window, fixture: fixture, client: client,
+            guard matchesFixture(target.window, fixture: fixture, client: client, finderFixture: applicationID == "com.apple.finder",
                 nativeDocument: ["com.apple.TextEdit", "com.apple.Preview"].contains(applicationID)) else {
                 throw Failure(message: "Disposable fixture identity changed")
             }
@@ -126,43 +126,85 @@ enum TextEditVerification {
             report["systemHUDCycles"] = "not yet verified; synthetic panels are not OS volume indicators"
         }
         var previous = ProcessInfo.processInfo.systemUptime
+        var clock = VerificationClock(now: previous, initialActiveSeconds: previous-started)
         var cpuStart = cpuSeconds()
         var stressCPU: Double?
         var idleCPU: [Double] = []
-        while ProcessInfo.processInfo.systemUptime-started < Double(seconds) {
+        var wasFocused = true, iterations = 0, pauses = 0
+        var resumedAt = previous
+        while clock.activeSeconds < Double(seconds) {
             try await Task.sleep(for: .milliseconds(100))
-            try verifyOwner()
-            guard model.verificationPanelVisible else { throw Failure(message: "Panel disappeared during stable-window observation") }
-            samples += 1
-            let now = ProcessInfo.processInfo.systemUptime
-            let elapsed = now-started
-            if seconds > 30 {
-                if elapsed < 30 { previous = now; cpuStart = cpuSeconds() }
-                else if stressCPU == nil && now-previous >= 60 {
-                    stressCPU = 100*(cpuSeconds()-cpuStart)/(now-previous)
-                    report["stressCPUPercent"] = String(stressCPU ?? .nan)
-                    report["stressCPUGate"] = (stressCPU ?? .infinity) <= 5 ? "passed" : "failed"
+            let now = ProcessInfo.processInfo.systemUptime, elapsed = now-started
+            guard elapsed < Double(seconds)+(seconds > 30 ? 1800 : 60) else { throw Failure(message: "Active observation time incomplete: focus pause limit reached") }
+            iterations += 1
+            guard model.trusted else { throw Failure(message: "Window control permission lost during observation") }
+            let focused = NSWorkspace.shared.frontmostApplication?.processIdentifier == target.pid &&
+                client.focusedWindow(pid: target.pid).map { CFEqual($0, target.window) } == true
+            if !focused {
+                if wasFocused {
+                    pauses += 1; wasFocused = false
+                    if seconds > 30 && stressCPU == nil {
+                        stressCPU = Double.nan
+                        report["stressCPUGate"] = "not measured: focus interrupted the continuous workload"
+                    }
+                }
+                clock.advance(now: now, active: false)
+                if iterations.isMultiple(of: 50) {
+                    let app = AXUIElementCreateApplication(target.pid)
+                    AXUIElementSetMessagingTimeout(app, 0.04)
+                    guard let windows = client.value(app, kAXWindowsAttribute) as? [AXUIElement],
+                          windows.contains(where: { CFEqual($0, target.window) }) else {
+                        throw Failure(message: "Owned fixture closed or could not be verified while paused")
+                    }
+                }
+                previous = now; cpuStart = cpuSeconds()
+                report["phase"] = "paused: waiting for owned fixture"
+            } else {
+                if !wasFocused {
+                    try verifyWritableFixture(); resumedAt = now; wasFocused = true
                     previous = now; cpuStart = cpuSeconds()
-                } else if elapsed < 200 && stressCPU != nil { previous = now; cpuStart = cpuSeconds() }
-                else if elapsed >= 200 && idleCPU.count < 5 && now-previous >= 60 {
-                    idleCPU.append(100*(cpuSeconds()-cpuStart)/(now-previous))
+                }
+                let visible = model.verificationPanelVisible
+                clock.advance(now: now, active: visible)
+                if !visible {
+                    guard now-resumedAt <= 1 else { throw Failure(message: "Panel disappeared during stable-window observation") }
                     previous = now; cpuStart = cpuSeconds()
-                    report["idleCPUWindows"] = String(idleCPU.count)
-                    let average = idleCPU.reduce(0,+)/Double(idleCPU.count)
-                    report["idleCPUPercent"] = String(average)
-                    report["idleCPUGate"] = idleCPU.count == 5 && average < 1 ? "passed" : "pending or failed"
+                    report["phase"] = "waiting for controls after focus return"
+                } else {
+                    samples += 1
+                    if seconds > 30 {
+                        if elapsed < 30 { previous = now; cpuStart = cpuSeconds() }
+                        else if stressCPU == nil && now-previous >= 60 {
+                            stressCPU = 100*(cpuSeconds()-cpuStart)/(now-previous)
+                            report["stressCPUPercent"] = String(stressCPU ?? .nan)
+                            report["stressCPUGate"] = (stressCPU ?? .infinity) <= 5 ? "passed" : "failed"
+                            previous = now; cpuStart = cpuSeconds()
+                        } else if elapsed < 200 && stressCPU != nil { previous = now; cpuStart = cpuSeconds() }
+                        else if elapsed >= 200 && idleCPU.count < 5 && now-previous >= 60 {
+                            idleCPU.append(100*(cpuSeconds()-cpuStart)/(now-previous))
+                            previous = now; cpuStart = cpuSeconds()
+                            report["idleCPUWindows"] = String(idleCPU.count)
+                            let average = idleCPU.reduce(0,+)/Double(idleCPU.count)
+                            report["idleCPUPercent"] = String(average)
+                            report["idleCPUGate"] = idleCPU.count < 5 ? "pending" : average < 1 ? "passed" : "failed"
+                        }
+                    }
+                    report["phase"] = stressCPU == nil && seconds > 30 ? "stress" : idleCPU.count < 5 && seconds > 30 ? "idle measurement" : "soak"
                 }
             }
-            if samples.isMultiple(of: 50) {
-                report["phase"] = elapsed < 100 ? "stress" : elapsed < 500 ? "idle measurement" : "soak"
-                report["elapsedSeconds"] = String(Int(elapsed)); report["visibleSamples"] = String(samples)
+            if iterations.isMultiple(of: 50) {
+                report["elapsedSeconds"] = String(Int(elapsed)); report["activeSeconds"] = String(Int(clock.activeSeconds))
+                report["pausedSeconds"] = String(Int(clock.pausedSeconds)); report["focusPauses"] = String(pauses)
+                report["visibleSamples"] = String(samples)
                 saveProgress(report, directory: directory)
             }
         }
+        report["activeSeconds"] = String(Int(clock.activeSeconds))
+        report["pausedSeconds"] = String(Int(clock.pausedSeconds)); report["focusPauses"] = String(pauses)
         report["baselineObservedPanel"] = baselinePanel.map { NSStringFromRect($0) } ?? "none"
         report["endObservedPanel"] = model.verificationPanelFrame.map { NSStringFromRect($0) } ?? "hidden"
         report["endAtObservedBaseline"] = String(baselinePanel != nil && model.verificationPanelFrame == baselinePanel)
-        report["stability"] = "passed: \(samples) visible samples; total session \(seconds) seconds including declared geometry/HUD phases"
+        report["stability"] = "passed: \(samples) visible samples; \(seconds) active seconds including declared geometry/HUD phases; wall \(Int(ProcessInfo.processInfo.systemUptime-started)) seconds; paused \(Int(clock.pausedSeconds)) seconds"
         report["phase"] = "window actions"; saveProgress(report, directory: directory)
     }
 
@@ -237,6 +279,17 @@ enum TextEditVerification {
             } else {
                 running = try await NSWorkspace.shared.open([fixture], withApplicationAt: application, configuration: configuration)
             }
+            func requireOwnedFixture(_ window: AXUIElement, focused: Bool = true) throws {
+                guard matchesFixture(window, fixture: fixture, client: client, finderFixture: applicationID == "com.apple.finder", nativeDocument: ["com.apple.TextEdit", "com.apple.Preview"].contains(applicationID)) else {
+                    throw Failure(message: "Disposable fixture identity changed before preparation")
+                }
+                if focused {
+                    guard NSWorkspace.shared.frontmostApplication?.processIdentifier == running.processIdentifier,
+                          let current = client.focusedWindow(pid: running.processIdentifier), CFEqual(current, window) else {
+                        throw Failure(message: "Focus changed before fixture preparation")
+                    }
+                }
+            }
             // Recover only this fixture if an interrupted earlier run left it full-screen.
             var fixtureWindow: AXUIElement?
             try await wait("Disposable document did not open") {
@@ -249,6 +302,7 @@ enum TextEditVerification {
             if let window = fixtureWindow {
                 if (client.value(window, "AXFullScreen") as? Bool) == true {
                     try await Task.sleep(for: .milliseconds(1200))
+                    try requireOwnedFixture(window, focused: false)
                     _ = AXUIElementSetAttributeValue(window, "AXFullScreen" as CFString, kCFBooleanFalse)
                     try await wait("Previous fixture full-screen state did not clear") {
                         (client.value(window, "AXFullScreen") as? Bool) == false
@@ -256,14 +310,18 @@ enum TextEditVerification {
                     try await Task.sleep(for: .milliseconds(800))
                 }
                 if (client.value(window, kAXMinimizedAttribute) as? Bool) == true {
+                    try requireOwnedFixture(window, focused: false)
                     _ = AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
                 }
+                try requireOwnedFixture(window, focused: false)
                 _ = AXUIElementPerformAction(window, kAXRaiseAction as CFString)
                 running.activate(options: [])
                 if browserFixture != nil {
                     try await Task.sleep(for: .milliseconds(500))
+                    try requireOwnedFixture(window)
                     _ = client.setPosition(CGPoint(x: 80, y: 90), on: window)
                     try await Task.sleep(for: .milliseconds(200))
+                    try requireOwnedFixture(window)
                     let fixtureWidth: CGFloat = min(1760, (NSScreen.main?.visibleFrame.width ?? 1920) - 160)
                     _ = client.setSize(CGSize(width: fixtureWidth, height: 700), on: window)
                     try await wait("Safari fixture did not accept normal starting size") {
@@ -317,7 +375,16 @@ enum TextEditVerification {
                 try await observe(model: model, target: target, fixture: fixture, applicationID: applicationID,
                     directory: directory, seconds: seconds, report: &report, client: client)
             }
-            guard matchesFixture(target.window, fixture: fixture, client: client, finderFixture: applicationID == "com.apple.finder", nativeDocument: ["com.apple.TextEdit", "com.apple.Preview"].contains(applicationID)) else { throw Failure(message: "Fixture changed before actions") }
+            func requireFocusedFixture(windowFocus: Bool = true) throws {
+                guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.pid,
+                      matchesFixture(target.window, fixture: fixture, client: client, finderFixture: applicationID == "com.apple.finder", nativeDocument: ["com.apple.TextEdit", "com.apple.Preview"].contains(applicationID)) else {
+                    throw Failure(message: "Focus or disposable fixture changed before action")
+                }
+                if windowFocus {
+                    guard let focused = client.focusedWindow(pid: target.pid), CFEqual(focused, target.window) else { throw Failure(message: "Focused window changed before action") }
+                }
+            }
+            try requireFocusedFixture()
             guard model.invokeVerificationAction(.minimize) else { throw Failure(message: "Minimize button unavailable") }
             report["minimizeDispatchStatus"] = model.status
             report["minimizePlacementIssue"] = client.placementIssue
@@ -326,6 +393,7 @@ enum TextEditVerification {
             }
             try await wait("Minimize transaction did not settle") { model.verificationActionIdle }
             report["minimize"] = "passed"
+            try requireFocusedFixture(windowFocus: false)
             guard AXUIElementSetAttributeValue(target.window, kAXMinimizedAttribute as CFString, kCFBooleanFalse) == .success else {
                 throw Failure(message: "Could not restore disposable window")
             }
@@ -341,18 +409,21 @@ enum TextEditVerification {
                   let fitted = WindowGeometry.screen(for: original, visibleFrames: NSScreen.screens.map({ WindowGeometry.flip($0.visibleFrame, primaryTop: primary.frame.maxY) })) else { throw Failure(message: "Screen geometry unavailable") }
             report["expectedFit"] = NSStringFromRect(fitted)
             report["originalFrame"] = NSStringFromRect(original)
+            try requireFocusedFixture()
             guard model.invokeVerificationAction(.fit) else { throw Failure(message: "Fit button unavailable") }
             try await wait("Fit did not reach visible screen bounds") {
                 client.frame(target.window).map { WindowGeometry.isFitted($0, inside: fitted) } ?? false
             }
             report["fit"] = "passed"
             try await wait("Panel did not return after fit") { model.verificationPanelVisible }
+            try requireFocusedFixture()
             guard model.invokeVerificationAction(.fit) else { throw Failure(message: "Restore button unavailable") }
             try await wait("Restore did not reach original frame") {
                 client.frame(target.window).map { WindowGeometry.close($0, original) } ?? false
             }
             report["restoreFrame"] = "passed"
             try await wait("Panel did not return after restore") { model.verificationPanelVisible }
+            try requireFocusedFixture()
             guard model.invokeVerificationAction(.close) else { throw Failure(message: "Close button unavailable") }
             try await wait("Close action did not remove the disposable window") {
                 guard let windows = client.value(AXUIElementCreateApplication(target.pid), kAXWindowsAttribute) as? [AXUIElement] else { return false }
@@ -360,6 +431,8 @@ enum TextEditVerification {
             }
             try await wait("Close transaction did not settle") { model.verificationActionIdle }
             report["close"] = "passed"
+            try await Task.sleep(for: .milliseconds(250))
+            report["postCloseStatus"] = model.status
             report["result"] = "passed"
         } catch {
             report["result"] = "failed"

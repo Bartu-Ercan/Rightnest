@@ -353,10 +353,12 @@ final class AccessibilityClient {
                     candidateObstructed = true
                     placementIssue = "Another window covers the title bar"; return nil
                 }
-                // Safari can return its WebArea for transparent native toolbar
-                // background. Correct only a geometrically disjoint content hit
-                // inside a completely inspected native toolbar, never real content.
-                let disjointContentHit = role == "AXWebArea" && WindowGeometry.disjointHit(frame(hit), from: candidate, inside: toolbarFrames)
+                // Native toolbar backgrounds can report a disjoint WebArea.
+                // Safari's native Start Page can instead report its ScrollArea.
+                // Keep that role correction Safari-only and inside a completely
+                // inspected toolbar; overlapping or unknown geometry still rejects.
+                let safariScrollHit = role == kAXScrollAreaRole && NSRunningApplication(processIdentifier: target.pid)?.bundleIdentifier == "com.apple.Safari"
+                let disjointContentHit = (role == "AXWebArea" || safariScrollHit) && WindowGeometry.disjointHit(frame(hit), from: candidate, inside: toolbarFrames)
                 // Catalyst can report a sibling call button for a point in its
                 // measured navigation spacer. Correct only an out-of-bounds
                 // hit in that exact inspected spacer, never an overlapping button.
