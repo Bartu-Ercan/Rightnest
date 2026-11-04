@@ -36,7 +36,7 @@ Accepted user plan, 2026-11-03. Candidate target: Preview 5 / build 6. This is a
 - Normal warmed service CPU: mean <1% of one core, measured with cumulative CPU time and stated configuration.
 - 60-second 5 Hz title-change CPU: mean <=5%. Preserve failed measurements.
 - Finder/Preview/System Settings basic actions; Discord visibility, placement and actions recorded separately. Do not act on personal documents/chats.
-- Different Space alone is not isolation. Cancel on unexpected focus/fixture changes; obtain an actual uninterrupted interval or separate test account/device.
+- Different Space alone is not isolation. Preparation and action phases cancel on unexpected focus/fixture changes. Passive observation may pause without refocusing, excluding paused and transition time; exact fixture verification is required to resume. Interrupted continuous CPU workloads are invalidated. Use an uninterrupted interval or separate test account/device for those measurements.
 
 ## Publication
 

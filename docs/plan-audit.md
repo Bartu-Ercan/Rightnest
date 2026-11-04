@@ -19,7 +19,7 @@ The original plan is **not complete**. Limited developer previews exist; they ar
 | MIT, public GitHub source, CI, versioned DMG/checksum | Complete | Public source, preview DMGs and checksums exist. Current release/source CI is recorded in STATUS.md. |
 | Manual GitHub update link | Implemented | Info.plist points to actual releases page. No automatic updater. |
 | Clean-account/browser-download/install/update/removal | Partial | Local install, strict packaged signature, mounted DMG and re-downloaded checksum passed. Clean-user and browser-quarantine journey incomplete. Gatekeeper rejects self-signed app. |
-| One-hour soak; CPU below 1%; stable RSS | Not met | Short passive samples and a 20s normal-debug-service cumulative sample (~0.70% of one core) exist; none is a one-hour soak. Title-change stress has separate higher CPU measurements. |
+| One-hour soak; CPU below 1%; stable RSS | Not met | Production Chrome idle mean0.5978% passed on the M2 reference host (30s warmup +five60s windows). Chrome1800s visibility/actions and60s5Hz stress1.737% passed; Safari long validation remains pending. None is a one-hour soak or multi-device proof. Failed instrumented CPU baselines remain recorded. |
 | Older supported OS / Intel | Not verified / deferred | Apple Silicon only. macOS 13 is API baseline, not tested-device support. |
 | Complete product / stable release | Not met | Compatibility and user-flow gates above must close first. |
 

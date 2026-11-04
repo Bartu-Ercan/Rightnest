@@ -2,7 +2,7 @@
   "sourceRuntime": "2b817261a5e33f3301e91ef20bb8e0b03cc4c3aa",
   "build": "6",
   "os": "macOS 27.0 (26A428), Apple Silicon",
-  "recordedAt": "2026-11-03T21:11:33.131513+00:00",
+  "recordedAt": "2026-11-04",
   "releaseStatus": "unreleased candidate; acceptance gates remain open",
   "safariSmoke": {
     "result": "passed",
@@ -46,7 +46,7 @@
     "qualification": "Interrupted when focus became Codex. No actions sent. Not a 30-minute pass. Instrumented idle CPU failed; normal service measurement pending."
   },
   "systemHUD": "Not verified. CUA media key unsupported; synthetic panels do not substitute for OS indicators.",
-  "chrome": "1800s owned Guest fixture and all final window actions passed; held-press guard follow-up and richer window cases still pending.",
+  "chrome": "1800s owned Guest fixture and all final window actions passed; held-press guard 30s regression also passed. Richer window cases and actual OS HUD cycles remain open.",
   "chromeActions": {
     "result": "passed",
     "stability": "passed: 287 visible samples; total session 30 seconds including declared geometry/HUD phases",
@@ -171,5 +171,65 @@
     "sameBundleInstances": "57533",
     "source": "174d4d0 optimized DEBUG"
   },
-  "safariCurrent": "Owned existing local fixture reloaded; new 1800s session running. No completed Safari 30-minute pass yet."
+  "safariCurrent": "Active 1800-second observation running under optimized DEBUG instrumentation with pause accounting, native AX press guard and scoped Safari disjoint-scroll-hit fix. No completed Safari 30-minute pass yet.",
+  "latestSource": "b686133",
+  "latestCI": {
+    "run": 41770037293,
+    "result": "passed",
+    "XCTest": 22,
+    "standaloneChecks": 96,
+    "nativeHoverCombinations": 24,
+    "nativePressChecks": 4,
+    "externalMonitorCompile": "passed",
+    "releaseBundleValidation": "passed"
+  },
+  "safariNativePressRegression": {
+    "result": "passed",
+    "activeSeconds": 30,
+    "visibleSamples": 285,
+    "actions": [
+      "minimize",
+      "restore",
+      "fit",
+      "restoreFrame",
+      "close"
+    ],
+    "endAtObservedBaseline": true,
+    "report": ".build/verify-p5-safari-accessibility-fixed/result.json",
+    "qualification": "Before scoped Safari AXScrollArea correction; not a long-session pass."
+  },
+  "safariStartPage": {
+    "result": "visible",
+    "version": "27.0",
+    "windowSize": "1310x700",
+    "duration": "over 2 minutes",
+    "actions": "not sent",
+    "report": ".build/audit-p5-startpage",
+    "qualification": "Owned blank window. Same-target, measured native-toolbar disjoint AXScrollArea correction; not a general exception for content groups."
+  },
+  "productionPackage": {
+    "source": "b686133",
+    "build": 6,
+    "configuration": "release without DEBUG",
+    "image": "Rightnest-0.1.0-preview-arm64.dmg",
+    "sha256": "3dfa5edad6c6ffffd1d084bc1b96c224d93ac59ce4d6309758582aae07def047",
+    "localChecks": [
+      "DMG checksum",
+      "read-only mount",
+      "strict app signature",
+      "arm64 architecture",
+      "build 6",
+      "A Corner icon",
+      "Applications symlink",
+      "developer entrypoints absent"
+    ],
+    "distribution": "unpublished; clean-user/browser-download validation not performed"
+  },
+  "liveFocusPause": {
+    "result": "pause verified; resume pending",
+    "activeSecondsHeld": 531,
+    "visibleSamplesHeld": 4805,
+    "report": ".build/verify-p5-safari-active1800/progress.json",
+    "qualification": "Owned Finder window focused; active/sample counts held while paused seconds advanced. CUA Raise/AX click/key input did not return system foreground ownership; Dock access timed out. User asked to foreground Safari; no programmatic activation workaround."
+  }
 }
