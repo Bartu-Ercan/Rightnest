@@ -46,7 +46,7 @@
     "qualification": "Interrupted when focus became Codex. No actions sent. Not a 30-minute pass. Instrumented idle CPU failed; normal service measurement pending."
   },
   "systemHUD": "Not verified. CUA media key unsupported; synthetic panels do not substitute for OS indicators.",
-  "chrome": "Long-session gate remains pending after initial geometry test failure; short action fixture passed.",
+  "chrome": "1800s owned Guest fixture and all final window actions passed; held-press guard follow-up and richer window cases still pending.",
   "chromeActions": {
     "result": "passed",
     "stability": "passed: 287 visible samples; total session 30 seconds including declared geometry/HUD phases",
@@ -128,5 +128,48 @@
     ],
     "sourceRuntime": "c25955622ac2fb052d263e669fcd5adbab042b32",
     "qualification": "Production release, external monitor, static Chrome Guest fixture. This passes the normal idle CPU gate; does not erase earlier failed baselines or satisfy a one-hour soak."
-  }
+  },
+  "referenceHost": {
+    "model": "Mac14,2",
+    "processor": "Apple M2",
+    "memoryGiB": 8,
+    "os": "macOS 27.0 (26A428)"
+  },
+  "chromeLongSession": {
+    "result": "passed",
+    "stability": "passed: 16712 visible samples; total session 1800 seconds including declared geometry/HUD phases",
+    "appearanceP95Milliseconds": "201.6014999971958",
+    "appearanceSamples": "50",
+    "appearanceGate": "passed",
+    "syntheticHUDCycles": "20",
+    "HUDReturnMaximumMilliseconds": "355.90429166404647",
+    "HUDReturnP95Milliseconds": "354.14729166586767",
+    "HUDReturnGate": "passed",
+    "stressCPUPercent": "1.7369807256431564",
+    "stressCPUGate": "passed",
+    "idleCPUPercent": "1.2260397268730912",
+    "idleCPUWindows": "5",
+    "idleCPUGate": "pending or failed",
+    "minimize": "passed",
+    "restore": "passed",
+    "fit": "passed",
+    "restoreFrame": "passed",
+    "close": "passed",
+    "sameBundleInstances": "44758",
+    "sourceRuntime": "a73e16f optimized DEBUG (engine c259556)",
+    "qualification": "1800-second total session including geometry/HUD phases. Real OS HUD cycles not verified. Instrumented idle CPU is a separate failed measurement; normal release CPU gate passed externally at 0.5978%.",
+    "rejectionObservation": "Last three recorded rejected native probes belonged to com.apple.MenuBarAgent. This does not prove the cause of earlier startup failures or identify a specific volume HUD."
+  },
+  "chromeHeldPressGuardRegression": {
+    "result": "passed",
+    "stability": "passed: 284 visible samples; total session 30 seconds including declared geometry/HUD phases",
+    "minimize": "passed",
+    "restore": "passed",
+    "fit": "passed",
+    "restoreFrame": "passed",
+    "close": "passed",
+    "sameBundleInstances": "57533",
+    "source": "174d4d0 optimized DEBUG"
+  },
+  "safariCurrent": "Owned existing local fixture reloaded; new 1800s session running. No completed Safari 30-minute pass yet."
 }

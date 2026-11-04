@@ -60,6 +60,7 @@ enum TextEditVerification {
                                 directory: URL, seconds: Int, report: inout [String: String], client: AccessibilityClient) async throws {
         let started = ProcessInfo.processInfo.systemUptime
         var samples = 0
+        var baselinePanel = model.verificationPanelFrame
         func verifyOwner() throws {
             guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.pid,
                   let focused = client.focusedWindow(pid: target.pid), CFEqual(focused, target.window) else {
@@ -96,6 +97,7 @@ enum TextEditVerification {
             if percentile95(appearance) > 300 { report["appearanceGate"] = "failed" }
             else { report["appearanceGate"] = "passed" }
             guard let home = model.verificationPanelFrame, let primary = NSScreen.screens.first else { throw Failure(message: "Home placement missing") }
+            baselinePanel = home
             let hudAX = home.insetBy(dx: -8, dy: -5)
             let hud = NSPanel(contentRect: WindowGeometry.flip(hudAX, primaryTop: primary.frame.maxY),
                 styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
@@ -157,6 +159,9 @@ enum TextEditVerification {
                 saveProgress(report, directory: directory)
             }
         }
+        report["baselineObservedPanel"] = baselinePanel.map { NSStringFromRect($0) } ?? "none"
+        report["endObservedPanel"] = model.verificationPanelFrame.map { NSStringFromRect($0) } ?? "hidden"
+        report["endAtObservedBaseline"] = String(baselinePanel != nil && model.verificationPanelFrame == baselinePanel)
         report["stability"] = "passed: \(samples) visible samples; total session \(seconds) seconds including declared geometry/HUD phases"
         report["phase"] = "window actions"; saveProgress(report, directory: directory)
     }
