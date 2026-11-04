@@ -1,0 +1,84 @@
+{
+  "version": "0.1.0",
+  "build": 6,
+  "channel": "early access; GitHub Latest, not prerelease",
+  "sourceCommit": "909996f724fd04a9f009830128b02dcc5f726d0b",
+  "engineBaseline": "dfdaa4e",
+  "releaseURL": "https://github.com/Bartu-Ercan/Rightnest/releases/tag/v0.1.0",
+  "latestURL": "https://github.com/Bartu-Ercan/Rightnest/releases/latest",
+  "sourceCI": {
+    "run": 41904623137,
+    "result": "passed",
+    "XCTest": 23,
+    "standaloneChecks": 100,
+    "nativeAppKitChecks": 28,
+    "customInstaller": "passed"
+  },
+  "asset": {
+    "name": "Rightnest-0.1.0-arm64.dmg",
+    "bytes": 530061,
+    "sha256": "0d6c1b41518c85c05cad961c757848c48e5fee47576d28d9ecff7c9064a9a411",
+    "anonymousLatestDownload": "passed checksum and byte comparison",
+    "draftDownload": "passed checksum and byte comparison"
+  },
+  "signing": {
+    "kind": "stable local development certificate; not Developer ID/notarized",
+    "certificateSHA256": "1033EFD0B5950047D98D4327A62FBE518830FCD4776BFFB32610B98597BAD8BA",
+    "strictMountedVerification": "passed",
+    "licenseInsideSignedBundle": true,
+    "developerEntryPoints": "excluded"
+  },
+  "installer": {
+    "visibleItems": [
+      "Rightnest.app",
+      "Applications"
+    ],
+    "applicationsTarget": "/Applications",
+    "windowPoints": [
+      800,
+      580
+    ],
+    "backgroundPoints": [
+      800,
+      500
+    ],
+    "backgroundPixels": [
+      [
+        800,
+        500
+      ],
+      [
+        1600,
+        1000
+      ]
+    ],
+    "dpi": [
+      72,
+      144
+    ],
+    "iconPoints": {
+      "Rightnest.app": [
+        210,
+        274
+      ],
+      "Applications": [
+        590,
+        274
+      ]
+    },
+    "finderVisualInspection": "passed on reference Mac; labels,instructions,arrow and icons readable/aligned",
+    "finderChrome": "system-owned; user preferences can keep path/status bars visible"
+  },
+  "repository": {
+    "defaultBranch": "main",
+    "developmentBranch": "codex/feasibility",
+    "homepage": "https://github.com/Bartu-Ercan/Rightnest/releases/latest"
+  },
+  "localInstall": "normal release installed/launched at ~/Applications/Rightnest.app with existing identity",
+  "unverified": [
+    "clean-user/browser-quarantine/update journey",
+    "new fixed-corner physical HUD behavior",
+    "broader app/device/display/one-hour gates"
+  ],
+  "publicationAuthorization": "user explicitly requested publishing current build as Latest; unresolved validation limits remain public"
+}
